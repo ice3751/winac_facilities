@@ -34,7 +34,8 @@ class PageSmokeTests(TestCase):
     def test_pages_load(self):
         for name in [
             "dashboard:home", "people:list", "people:add", "guests:list",
-            "guests:cards", "guests:assignments", "meals:issue", "meals:consume",
+            "guests:cards", "guests:assignments", "guests:assignment_add",
+            "guests:approvals", "meals:issue", "meals:consume",
             "meals:today", "meals:plans", "catering:list", "catering:items",
             "reports:index",
         ]:
@@ -139,6 +140,46 @@ class AttendanceIntegrationTests(TestCase):
         self.assertEqual(resp.status_code, 201)
         self.assertTrue(resp.json()["ok"])
         self.assertEqual(MealToken.objects.filter(personnel=self.person).count(), 1)
+
+
+class GuestApprovalTests(TestCase):
+    def setUp(self):
+        self.host = User.objects.create_user(
+            username="host_t", password="pass12345", role=User.Roles.HOST
+        )
+        self.office = User.objects.create_user(
+            username="office_t", password="pass12345", role=User.Roles.OFFICE_MANAGER
+        )
+
+    def test_host_registration_is_pending(self):
+        self.client.force_login(self.host)
+        resp = self.client.post(reverse("guests:add"), {
+            "first_name": "مهمان", "last_name": "تست", "company": "",
+            "guest_type": Guest.GuestType.VISITOR, "phone": "",
+            "visit_date": timezone.localdate().isoformat(),
+            "needs_lunch": "on", "status": Guest.Status.REGISTERED,
+        })
+        self.assertEqual(resp.status_code, 302)
+        guest = Guest.objects.get(first_name="مهمان")
+        self.assertEqual(guest.approval_status, Guest.ApprovalStatus.PENDING)
+
+    def test_office_manager_can_approve(self):
+        guest = Guest.objects.create(
+            first_name="در", last_name="انتظار", visit_date=timezone.localdate(),
+            approval_status=Guest.ApprovalStatus.PENDING,
+        )
+        self.client.force_login(self.office)
+        resp = self.client.post(reverse("guests:review", args=[guest.pk]),
+                                {"decision": "approve", "review_note": "اوکی"})
+        self.assertEqual(resp.status_code, 302)
+        guest.refresh_from_db()
+        self.assertEqual(guest.approval_status, Guest.ApprovalStatus.APPROVED)
+        self.assertEqual(guest.approved_by, self.office)
+
+    def test_host_cannot_access_approvals(self):
+        self.client.force_login(self.host)
+        resp = self.client.get(reverse("guests:approvals"))
+        self.assertEqual(resp.status_code, 403)
 
 
 class ChartHelperTests(TestCase):

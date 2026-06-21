@@ -39,3 +39,7 @@ class CardAssignmentForm(BootstrapFormMixin, forms.ModelForm):
         if self.instance and self.instance.pk and self.instance.card_id:
             free = free | GuestCard.objects.filter(pk=self.instance.card_id)
         self.fields["card"].queryset = free.distinct()
+        # تنها مهمان‌های تأییدشده قابل تخصیص کارت هستند
+        self.fields["guest"].queryset = Guest.objects.filter(
+            approval_status=Guest.ApprovalStatus.APPROVED
+        )

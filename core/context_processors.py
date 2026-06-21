@@ -5,7 +5,7 @@ from .utils import jalali_today_str
 
 def app_context(request):
     perms_nav = {"people": False, "guests": False, "meals": False,
-                 "catering": False, "reports": False}
+                 "catering": False, "reports": False, "guest_approvals": False}
 
     user = getattr(request, "user", None)
     if user is not None and user.is_authenticated:
@@ -13,15 +13,16 @@ def app_context(request):
         admin = user.is_admin_role
         perms_nav = {
             "people": admin or user.role in {R.RECEPTION, R.RESTAURANT, R.HOST},
-            "guests": admin or user.role in {R.RECEPTION, R.HOST},
+            "guests": admin or user.role in {R.RECEPTION, R.HOST, R.OFFICE_MANAGER},
             "meals": admin or user.role in {R.RESTAURANT, R.RECEPTION},
             "catering": admin or user.role in {R.PROTOCOL, R.HOST},
             "reports": admin or user.role == R.REPORT_VIEWER,
+            "guest_approvals": admin or user.role == R.OFFICE_MANAGER,
         }
 
     return {
         "APP_NAME": "سامانه مدیریت نهار و پذیرایی",
-        "APP_SHORT_NAME": "وینک",
+        "APP_SHORT_NAME": "ویناک",
         "TODAY_JALALI": jalali_today_str(with_month_name=True),
         "perms_nav": perms_nav,
     }

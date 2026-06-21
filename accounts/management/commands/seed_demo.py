@@ -35,7 +35,8 @@ class Command(BaseCommand):
             "reception": (User.Roles.RECEPTION, "کاربر پذیرش"),
             "restaurant": (User.Roles.RESTAURANT, "مسئول رستوران"),
             "protocol": (User.Roles.PROTOCOL, "واحد تشریفات"),
-            "host": (User.Roles.HOST, "میزبان داخلی"),
+            "host": (User.Roles.HOST, "مدیر واحد / میزبان"),
+            "office": (User.Roles.OFFICE_MANAGER, "مدیر اداری"),
             "reporter": (User.Roles.REPORT_VIEWER, "مدیر گزارش‌گیر"),
         }
         for username, (role, name) in role_users.items():
@@ -65,7 +66,7 @@ class Command(BaseCommand):
             Guest.objects.create(
                 first_name="رضا", last_name="احمدی", company="شرکت نمونه",
                 guest_type=Guest.GuestType.CUSTOMER, visit_date=timezone.localdate(),
-                needs_lunch=True,
+                needs_lunch=True, approval_status=Guest.ApprovalStatus.APPROVED,
             )
             self.stdout.write("  ۱ مهمان نمونه ساخته شد")
 

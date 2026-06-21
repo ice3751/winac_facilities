@@ -33,6 +33,10 @@ ROLE_PERMISSIONS = {
         "guests": ["add", "change", "view"],
         "catering": ["add", "change", "view"],
     },
+    User.Roles.OFFICE_MANAGER: {
+        "guests": ["change", "view"],
+        "people": ["view"],
+    },
     User.Roles.REPORT_VIEWER: {
         "meals": ["view"],
         "guests": ["view"],

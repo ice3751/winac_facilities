@@ -25,7 +25,9 @@
         <li class="nav-item"><a class="nav-link" href="{% url 'dashboard:home' %}">داشبورد</a></li>
         {% if perms_nav.people %}<li class="nav-item"><a class="nav-link" href="{% url 'people:list' %}">پرسنل</a></li>{% endif %}
         {% if perms_nav.guests %}<li class="nav-item"><a class="nav-link" href="{% url 'guests:list' %}">مهمان‌ها</a></li>{% endif %}
+        {% if perms_nav.guest_approvals %}<li class="nav-item"><a class="nav-link" href="{% url 'guests:approvals' %}">تأیید مهمان‌ها</a></li>{% endif %}
         {% if perms_nav.guests %}<li class="nav-item"><a class="nav-link" href="{% url 'guests:cards' %}">کارت‌ها</a></li>{% endif %}
+        {% if perms_nav.guests %}<li class="nav-item"><a class="nav-link" href="{% url 'guests:assignments' %}">تخصیص کارت</a></li>{% endif %}
         {% if perms_nav.meals %}<li class="nav-item"><a class="nav-link" href="{% url 'meals:issue' %}">صدور ژتون</a></li>{% endif %}
         {% if perms_nav.meals %}<li class="nav-item"><a class="nav-link" href="{% url 'meals:consume' %}">مصرف ژتون</a></li>{% endif %}
         {% if perms_nav.meals %}<li class="nav-item"><a class="nav-link" href="{% url 'meals:today' %}">ژتون‌های امروز</a></li>{% endif %}

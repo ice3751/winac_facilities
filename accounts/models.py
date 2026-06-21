@@ -12,7 +12,8 @@ class User(AbstractUser):
         RECEPTION = "reception", "پذیرش / نگهبانی"
         RESTAURANT = "restaurant", "مسئول رستوران"
         PROTOCOL = "protocol", "واحد تشریفات"
-        HOST = "host", "میزبان داخلی / درخواست‌دهنده"
+        HOST = "host", "مدیر واحد / میزبان"
+        OFFICE_MANAGER = "office_manager", "مدیر اداری"
         REPORT_VIEWER = "report_viewer", "مدیر گزارش‌گیر"
 
     role = models.CharField(

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ data.title }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="page-title mb-0">{{ data.title }}</h4>
+  <a href="{% url 'reports:index' %}" class="btn btn-outline-secondary btn-sm">بازگشت</a>
+</div>
+
+<form class="row g-2 mb-3 align-items-end" method="get">
+  <div class="col-md-3">
+    <label class="form-label small">از تاریخ</label>
+    <input type="date" name="start" value="{{ start }}" class="form-control">
+  </div>
+  <div class="col-md-3">
+    <label class="form-label small">تا تاریخ</label>
+    <input type="date" name="end" value="{{ end }}" class="form-control">
+  </div>
+  <div class="col-md-2"><button class="btn btn-winac w-100">اعمال فیلتر</button></div>
+  <div class="col-md-2">
+    <a class="btn btn-success w-100" href="?start={{ start }}&end={{ end }}&export=excel">خروجی Excel</a>
+  </div>
+</form>
+
+<div class="card"><div class="table-responsive">
+<table class="table table-hover table-sm mb-0">
+  <thead><tr>{% for h in data.headers %}<th>{{ h }}</th>{% endfor %}</tr></thead>
+  <tbody>
+  {% for row in data.rows %}
+    <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+  {% empty %}<tr><td colspan="{{ data.headers|length }}" class="text-center text-muted py-4">داده‌ای برای این بازه وجود ندارد</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div></div>
+<p class="text-muted small mt-2">تعداد ردیف: {{ data.rows|length }}</p>
+{% endblock %}

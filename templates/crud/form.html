@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="page-title mb-0">{{ page_title }}</h4>
+  {% if back_url %}<a href="{{ back_url }}" class="btn btn-sm btn-outline-secondary">بازگشت</a>{% endif %}
+</div>
+<div class="card">
+  <div class="card-body">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% include "crud/_fields.html" %}
+      <div class="mt-4">
+        <button type="submit" class="btn btn-winac">ذخیره</button>
+        {% if back_url %}<a href="{{ back_url }}" class="btn btn-light">انصراف</a>{% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

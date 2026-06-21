@@ -1,0 +1,15 @@
+{# رندر فیلدهای فرم با استایل Bootstrap #}
+{% if form.non_field_errors %}
+  <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+{% endif %}
+<div class="row g-3">
+{% for field in form.visible_fields %}
+  <div class="col-md-6">
+    <label class="form-label">{{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+    {{ field }}
+    {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+    {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+  </div>
+{% endfor %}
+</div>
+{% for field in form.hidden_fields %}{{ field }}{% endfor %}

@@ -1,0 +1,33 @@
+:root {
+  --winac-primary: #1f6f54;
+  --winac-primary-dark: #155741;
+}
+
+body {
+  font-family: Tahoma, "Segoe UI", Vazirmatn, sans-serif;
+  background: #f4f6f8;
+}
+
+/* اعداد و کلمات انگلیسی در متن فارسی خواناتر دیده شوند */
+.ltr { direction: ltr; unicode-bidi: embed; display: inline-block; }
+code, .mono { direction: ltr; unicode-bidi: embed; font-family: Consolas, monospace; }
+
+.app-navbar {
+  background: var(--winac-primary);
+}
+.app-navbar .nav-link { font-size: .95rem; }
+
+.stat-card {
+  border: none;
+  border-radius: .75rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+.stat-card .stat-value { font-size: 2rem; font-weight: 700; }
+.stat-card .stat-label { color: #6c757d; font-size: .9rem; }
+
+.card { border-radius: .6rem; }
+.table thead { background: #eef2f1; }
+.btn-winac { background: var(--winac-primary); color: #fff; }
+.btn-winac:hover { background: var(--winac-primary-dark); color: #fff; }
+
+.page-title { border-right: 4px solid var(--winac-primary); padding-right: .6rem; }

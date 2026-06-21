@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}تخصیص کارت‌ها{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="page-title mb-0">تخصیص کارت به مهمان</h4>
+  <a href="{% url 'guests:assignment_add' %}" class="btn btn-winac btn-sm">+ تخصیص جدید</a>
+</div>
+<div class="card"><div class="table-responsive">
+<table class="table table-hover mb-0">
+  <thead><tr><th>کارت</th><th>مهمان</th><th>تاریخ</th><th>تحویل</th><th>برگشت</th><th>تحویل‌دهنده</th><th>وضعیت</th><th></th></tr></thead>
+  <tbody>
+  {% for a in assignments %}
+    <tr>
+      <td>{{ a.card.title }}</td>
+      <td>{{ a.guest.full_name }}</td>
+      <td>{{ a.assigned_date }}</td>
+      <td>{{ a.delivered_at|default:"-" }}</td>
+      <td>{{ a.returned_at|default:"-" }}</td>
+      <td>{{ a.delivered_by.display_name|default:"-" }}</td>
+      <td>{{ a.get_status_display }}</td>
+      <td><a href="{% url 'guests:assignment_edit' a.pk %}" class="btn btn-sm btn-outline-primary">ویرایش</a></td>
+    </tr>
+  {% empty %}<tr><td colspan="8" class="text-center text-muted py-4">تخصیصی ثبت نشده است</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div></div>
+{% include "crud/_pagination.html" %}
+{% endblock %}

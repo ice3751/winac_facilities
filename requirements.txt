@@ -1,0 +1,6 @@
+Django>=5.0,<5.2
+python-dotenv>=1.0
+openpyxl>=3.1
+# دیتابیس‌های نهایی (در صورت نیاز نصب شوند):
+# psycopg2-binary>=2.9        # PostgreSQL
+# mssql-django>=1.4           # SQL Server

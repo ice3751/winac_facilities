@@ -90,15 +90,12 @@ a:hover { color: var(--blue-600); }
   margin: 0 .3rem; }
 .s-group.open .s-submenu { max-height: 320px; }
 .s-sub {
-  display: block; color: #aab8c5; padding: .5rem .9rem .5rem 1.9rem; font-size: .88rem;
-  border-radius: 9px; margin-bottom: 1px; position: relative;
+  display: block; color: #aab8c5; padding: .5rem 2.2rem .5rem .9rem; font-size: .88rem;
+  border-radius: 9px; margin-bottom: 1px;
   transition: background .16s ease, color .16s ease;
 }
-.s-sub::before { content: ""; position: absolute; right: .85rem; top: 50%; width: 5px; height: 5px;
-  border-radius: 50%; background: currentColor; transform: translateY(-50%); opacity: .5; }
 .s-sub:hover { background: rgba(255,255,255,.07); color: #fff; }
 .s-sub.active { color: #fff; background: rgba(14,155,215,.22); }
-.s-sub.active::before { opacity: 1; background: var(--blue); }
 
 /* پوسته و نوار بالای محتوا */
 .app-shell { margin-right: var(--sb-w); min-height: 100vh; display: flex; flex-direction: column; }

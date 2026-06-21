@@ -66,6 +66,42 @@ python manage.py runserver
 در فایل `.env` مقدار `DB_ENGINE` را به `postgres` یا `mssql` تغییر داده و مشخصات
 اتصال را وارد کنید. سپس درایور مربوطه را از `requirements.txt` نصب کنید.
 
+## سطح دسترسی (Group / Permission)
+
+علاوه بر کنترل دسترسی نقش‌محورِ وب (`RoleRequiredMixin`)، یک دستور، گروه‌های استاندارد
+جنگو را با مجوزهای متناسبِ هر نقش می‌سازد و کاربران را به گروه نقش خود می‌افزاید:
+
+```bash
+python manage.py setup_roles
+```
+
+## استقرار در Production
+
+```bash
+# ۱) تنظیمات
+cp .env.production.example .env        # و مقادیر را تکمیل کنید (SECRET_KEY، دیتابیس، دامنه)
+
+# ۲) دیتابیس و دسترسی‌ها
+python manage.py migrate
+python manage.py setup_roles
+
+# ۳) جمع‌آوری فایل‌های استاتیک (WhiteNoise، فشرده و نسخه‌دار)
+python manage.py collectstatic --noinput
+
+# ۴) اجرای سرور WSGI
+gunicorn config.wsgi:application -b 0.0.0.0:8000 --workers 3
+```
+
+- فایل‌های استاتیک توسط **WhiteNoise** بدون نیاز به وب‌سرور جداگانه سرو می‌شوند.
+- با `DEBUG=False` تنظیمات امنیتی (XSS، nosniff، کوکی HTTPOnly، X-Frame) فعال می‌شوند.
+- برای HTTPS، `CSRF_TRUSTED_ORIGINS` را در `.env` مقداردهی کنید.
+
+## برندینگ / لوگو
+
+لوگوی برند در `static/img/winac-logo.svg` قرار دارد و در نوار بالا و صفحهٔ ورود نمایش
+داده می‌شود. برای استفاده از فایل اصلی، کافی است همین فایل را با لوگوی رسمی خود
+(با همین نام) جایگزین کنید.
+
 ## تست
 
 ```bash

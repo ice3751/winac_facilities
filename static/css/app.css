@@ -26,7 +26,9 @@ code, .mono { direction: ltr; unicode-bidi: embed; font-family: Consolas, monosp
   border-bottom: 3px solid var(--winac-blue);
 }
 .app-navbar .navbar-brand { color: #fff; }
-.app-navbar .navbar-brand .brand-accent { color: var(--winac-blue); }
+.app-navbar .brand-logo { height: 34px; background: #fff; border-radius: 6px; padding: 3px 6px; }
+.app-navbar .brand-sep { color: #6b6b6b; }
+.app-navbar .brand-app { color: #fff; font-weight: 700; font-size: 1rem; }
 .app-navbar .nav-link { font-size: .95rem; color: #d9dde0 !important; }
 .app-navbar .nav-link:hover { color: #fff !important; }
 .app-navbar .nav-link.active { color: var(--winac-blue) !important; }

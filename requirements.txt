@@ -2,6 +2,8 @@ Django>=5.0,<5.2
 python-dotenv>=1.0
 openpyxl>=3.1
 qrcode>=7.4
+whitenoise>=6.6
+gunicorn>=22.0     # سرور WSGI برای Production (لینوکس)
 # دیتابیس‌های نهایی (در صورت نیاز نصب شوند):
 # psycopg2-binary>=2.9        # PostgreSQL
 # mssql-django>=1.4           # SQL Server

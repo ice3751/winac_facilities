@@ -18,8 +18,12 @@ class BootstrapFormMixin:
                 widget.attrs.setdefault("class", "form-control")
             # ورودی‌های تاریخ/زمان نوع HTML مناسب بگیرند
             if isinstance(widget, forms.DateInput):
-                widget.input_type = "date"
+                # مقدار ISO نگه داشته می‌شود؛ تقویم شمسی سمت کلاینت آن را
+                # به نمایش فارسی تبدیل می‌کند (static/js/jalali-datepicker.js)
+                widget.input_type = "text"
                 widget.format = "%Y-%m-%d"
+                existing = widget.attrs.get("class", "")
+                widget.attrs["class"] = (existing + " jalali-date").strip()
             elif isinstance(widget, forms.TimeInput):
                 widget.input_type = "time"
                 widget.format = "%H:%M"

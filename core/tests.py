@@ -141,6 +141,22 @@ class AttendanceIntegrationTests(TestCase):
         self.assertEqual(MealToken.objects.filter(personnel=self.person).count(), 1)
 
 
+class ChartHelperTests(TestCase):
+    def test_bar_chart_renders_svg(self):
+        from core.charts import bar_chart
+
+        svg = bar_chart(["شنبه", "یک‌شنبه"], [{"values": [3, 5], "cls": "bar-a"}])
+        self.assertIn("<svg", svg)
+        self.assertIn("<rect", svg)
+
+    def test_jalali_conversion(self):
+        from core.utils import to_jalali_str
+        import datetime
+
+        # ۲۰۲۶-۰۳-۲۱ تقریباً ابتدای بهار = ۱۴۰۵/۰۱/۰۱
+        self.assertEqual(to_jalali_str(datetime.date(2026, 3, 21)), "1405/01/01")
+
+
 class TokenPrintTests(TestCase):
     def test_print_page_has_qr(self):
         admin = User.objects.create_superuser(

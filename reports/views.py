@@ -51,7 +51,24 @@ class ReportDetailView(RoleRequiredMixin, View):
 
         return render(request, "reports/detail.html", {
             "key": key, "data": data, "start": start.isoformat(), "end": end.isoformat(),
+            "chart": self._maybe_chart(data),
         })
+
+    def _maybe_chart(self, data):
+        """اگر ستون آخر عددی و تعداد ردیف معقول باشد، یک نمودار میله‌ای می‌سازد."""
+        from core.charts import bar_chart
+
+        rows = data["rows"]
+        if not rows or len(rows) > 25 or len(data["headers"]) < 2:
+            return None
+        labels, values = [], []
+        for row in rows:
+            value = row[-1]
+            if not isinstance(value, int):
+                return None
+            labels.append(str(row[0])[:12])
+            values.append(value)
+        return bar_chart(labels, [{"values": values, "cls": "bar-a"}])
 
     def _export_excel(self, key, data, start, end):
         from openpyxl import Workbook

@@ -14,6 +14,17 @@
   {% include "dashboard/_stat.html" with label="پذیرایی آماده‌نشده" value=stat_catering_not_ready color="danger" %}
 </div>
 
+<div class="card mb-4">
+  <div class="card-header fw-bold d-flex justify-content-between align-items-center">
+    <span>روند ۷ روز اخیر ژتون غذا</span>
+    <span class="chart-legend">
+      <span><i style="background:var(--winac-blue-light)"></i> صادرشده</span>
+      <span><i style="background:var(--winac-blue)"></i> مصرف‌شده</span>
+    </span>
+  </div>
+  <div class="card-body">{{ week_chart }}</div>
+</div>
+
 <div class="row g-4">
   <div class="col-lg-6">
     <div class="card">

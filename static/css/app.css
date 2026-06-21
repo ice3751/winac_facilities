@@ -64,3 +64,29 @@ a { color: var(--winac-blue-dark); }
 /* صفحهٔ ورود */
 .login-hero { color: var(--winac-charcoal); }
 .login-hero .brand-accent { color: var(--winac-blue); }
+
+/* تقویم شمسی */
+.jdp-display { direction: ltr; text-align: center; }
+.jdp-pop {
+  z-index: 1080; background: #fff; border: 1px solid #cfe2ee; border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(13,80,120,.18); padding: 10px; width: 256px;
+  font-family: Tahoma, sans-serif;
+}
+.jdp-head { display: flex; justify-content: space-between; align-items: center;
+  font-weight: 700; color: var(--winac-charcoal); margin-bottom: 8px; }
+.jdp-nav { border: none; background: #eaf4fb; color: var(--winac-blue-dark);
+  width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 16px; }
+.jdp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
+.jdp-w { color: #99a; font-size: 12px; padding: 4px 0; }
+.jdp-day { padding: 6px 0; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.jdp-day:hover { background: #eaf4fb; }
+.jdp-sel { background: var(--winac-blue); color: #fff; }
+.jdp-foot { display: flex; justify-content: space-between; margin-top: 8px; }
+.jdp-foot button { border: none; background: none; color: var(--winac-blue-dark);
+  cursor: pointer; font-size: 12px; }
+/* چارت‌های SVG سمت سرور */
+.svg-chart { width: 100%; height: auto; }
+.svg-chart .bar-a { fill: var(--winac-blue); }
+.svg-chart .bar-b { fill: var(--winac-blue-light); }
+.chart-legend span { display: inline-flex; align-items: center; gap: 4px; margin-left: 12px; font-size: .85rem; }
+.chart-legend i { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }

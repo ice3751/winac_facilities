@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}پرسنل{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="page-title mb-0">لیست پرسنل</h4>
+  <a href="{% url 'people:add' %}" class="btn btn-winac btn-sm">+ ثبت پرسنل</a>
+</div>
+
+<form class="row g-2 mb-3" method="get">
+  <div class="col-md-5"><input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="جستجو: نام، کد پرسنلی، واحد"></div>
+  <div class="col-md-3">
+    <select name="type" class="form-select">
+      <option value="">همه انواع</option>
+      {% for val,label in type_choices %}<option value="{{ val }}" {% if request.GET.type == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2"><button class="btn btn-outline-secondary w-100">فیلتر</button></div>
+</form>
+
+<div class="card"><div class="table-responsive">
+<table class="table table-hover mb-0">
+  <thead><tr><th>کد پرسنلی</th><th>نام</th><th>واحد</th><th>نوع</th><th>وضعیت</th><th></th></tr></thead>
+  <tbody>
+  {% for p in people %}
+    <tr>
+      <td class="mono">{{ p.personnel_code }}</td>
+      <td>{{ p.full_name }}</td>
+      <td>{{ p.org_unit|default:"-" }}</td>
+      <td>{{ p.get_person_type_display }}</td>
+      <td>{% if p.is_active %}<span class="badge bg-success">فعال</span>{% else %}<span class="badge bg-secondary">غیرفعال</span>{% endif %}</td>
+      <td><a href="{% url 'people:edit' p.pk %}" class="btn btn-sm btn-outline-primary">ویرایش</a></td>
+    </tr>
+  {% empty %}<tr><td colspan="6" class="text-center text-muted py-4">پرسنلی یافت نشد</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div></div>
+
+{% include "crud/_pagination.html" %}
+{% endblock %}

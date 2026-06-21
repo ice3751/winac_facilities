@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}صدور ژتون{% endblock %}
+{% block content %}
+<h4 class="page-title mb-4">صدور ژتون غذا</h4>
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card"><div class="card-body">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% include "crud/_fields.html" %}
+        <div class="mt-4"><button class="btn btn-winac">صدور ژتون</button>
+          <a href="{% url 'meals:today' %}" class="btn btn-light">ژتون‌های امروز</a></div>
+      </form>
+    </div></div>
+    <p class="text-muted small mt-2">
+      توجه: هر فرد در هر روز فقط یک ژتون معتبر می‌تواند داشته باشد. در صورت تکرار، سیستم هشدار می‌دهد.
+    </p>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+  // نمایش فیلد متناسب با نوع گیرنده
+  function toggleRecipient() {
+    const t = document.getElementById('id_recipient_type').value;
+    const pWrap = document.getElementById('id_personnel').closest('.col-md-6');
+    const gWrap = document.getElementById('id_guest').closest('.col-md-6');
+    pWrap.style.display = (t === 'personnel') ? '' : 'none';
+    gWrap.style.display = (t === 'guest') ? '' : 'none';
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    const sel = document.getElementById('id_recipient_type');
+    if (sel) { sel.addEventListener('change', toggleRecipient); toggleRecipient(); }
+  });
+</script>
+{% endblock %}

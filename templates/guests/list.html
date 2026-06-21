@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}مهمان‌ها{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="page-title mb-0">لیست مهمان‌ها</h4>
+  <div>
+    <a href="{% url 'guests:assignments' %}" class="btn btn-outline-secondary btn-sm">تخصیص کارت‌ها</a>
+    <a href="{% url 'guests:add' %}" class="btn btn-winac btn-sm">+ ثبت مهمان</a>
+  </div>
+</div>
+
+<form class="row g-2 mb-3" method="get">
+  <div class="col-md-5"><input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="جستجو: نام، شرکت، تلفن"></div>
+  <div class="col-md-3">
+    <select name="status" class="form-select">
+      <option value="">همه وضعیت‌ها</option>
+      {% for val,label in status_choices %}<option value="{{ val }}" {% if request.GET.status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2"><button class="btn btn-outline-secondary w-100">فیلتر</button></div>
+</form>
+
+<div class="card"><div class="table-responsive">
+<table class="table table-hover mb-0">
+  <thead><tr><th>نام</th><th>شرکت</th><th>نوع</th><th>میزبان</th><th>تاریخ</th><th>نهار</th><th>پذیرایی</th><th>وضعیت</th><th></th></tr></thead>
+  <tbody>
+  {% for g in guests %}
+    <tr>
+      <td>{{ g.full_name }}</td>
+      <td>{{ g.company|default:"-" }}</td>
+      <td>{{ g.get_guest_type_display }}</td>
+      <td>{{ g.host_personnel.full_name|default:"-" }}</td>
+      <td>{{ g.visit_date }}</td>
+      <td>{% if g.needs_lunch %}✔{% else %}—{% endif %}</td>
+      <td>{% if g.needs_catering %}✔{% else %}—{% endif %}</td>
+      <td><span class="badge bg-secondary">{{ g.get_status_display }}</span></td>
+      <td><a href="{% url 'guests:edit' g.pk %}" class="btn btn-sm btn-outline-primary">ویرایش</a></td>
+    </tr>
+  {% empty %}<tr><td colspan="9" class="text-center text-muted py-4">مهمانی یافت نشد</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div></div>
+{% include "crud/_pagination.html" %}
+{% endblock %}

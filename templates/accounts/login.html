@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}ورود{% endblock %}
+{% block content %}
+<div class="row justify-content-center align-items-center" style="min-height:70vh">
+  <div class="col-md-5 col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h4 class="text-center mb-4 page-title">ورود به {{ APP_SHORT_NAME }}</h4>
+        {% if form.errors %}
+          <div class="alert alert-danger">نام کاربری یا گذرواژه نادرست است.</div>
+        {% endif %}
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">نام کاربری</label>
+            <input type="text" name="username" class="form-control" autofocus required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">گذرواژه</label>
+            <input type="password" name="password" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-winac w-100">ورود</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

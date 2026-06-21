@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}جزئیات پذیرایی{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="page-title mb-0">{{ req.title }}</h4>
+  <div>
+    <a href="{% url 'catering:edit' req.pk %}" class="btn btn-outline-primary btn-sm">ویرایش</a>
+    <a href="{% url 'catering:list' %}" class="btn btn-outline-secondary btn-sm">بازگشت</a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card mb-3"><div class="card-body">
+      <table class="table table-sm mb-0">
+        <tr><th>میزبان</th><td>{{ req.host.full_name|default:"-" }}</td></tr>
+        <tr><th>تاریخ</th><td>{{ req.catering_date }}</td></tr>
+        <tr><th>ساعت آماده‌سازی</th><td>{{ req.prepare_time|default:"-" }}</td></tr>
+        <tr><th>محل</th><td>{{ req.location|default:"-" }}</td></tr>
+        <tr><th>مناسبت</th><td>{{ req.get_occasion_display }}</td></tr>
+        <tr><th>نفرات</th><td>{{ req.headcount }}</td></tr>
+        <tr><th>وضعیت</th><td><span class="badge bg-info text-dark">{{ req.get_status_display }}</span></td></tr>
+        <tr><th>توضیحات</th><td>{{ req.description|default:"-" }}</td></tr>
+      </table>
+    </div></div>
+
+    <div class="card"><div class="card-body">
+      <h6>تغییر وضعیت آماده‌سازی</h6>
+      <form method="post" action="{% url 'catering:set_status' req.pk %}" class="d-flex gap-2">
+        {% csrf_token %}
+        <select name="status" class="form-select">
+          {% for val,label in status_choices %}<option value="{{ val }}" {% if req.status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <button class="btn btn-winac">ثبت</button>
+      </form>
+    </div></div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="card"><div class="card-body">
+      <h6 class="mb-3">اقلام پذیرایی</h6>
+      <table class="table table-sm align-middle">
+        <thead><tr><th>قلم</th><th>مقدار</th><th>واحد</th><th>توضیحات</th><th></th></tr></thead>
+        <tbody>
+        {% for it in items %}
+          <tr><td>{{ it.item.name }}</td><td>{{ it.quantity }}</td><td>{{ it.item.get_unit_display }}</td>
+            <td>{{ it.description|default:"-" }}</td>
+            <td><form method="post" action="{% url 'catering:delete_item' req.pk it.pk %}">{% csrf_token %}
+              <button class="btn btn-sm btn-outline-danger">حذف</button></form></td></tr>
+        {% empty %}<tr><td colspan="5" class="text-center text-muted">قلمی اضافه نشده است</td></tr>{% endfor %}
+        </tbody>
+      </table>
+
+      <hr>
+      <h6 class="mb-3">افزودن قلم</h6>
+      <form method="post" action="{% url 'catering:add_item' req.pk %}">
+        {% csrf_token %}
+        {% include "crud/_fields.html" with form=item_form %}
+        <div class="mt-3"><button class="btn btn-winac btn-sm">افزودن</button></div>
+      </form>
+    </div></div>
+  </div>
+</div>
+{% endblock %}

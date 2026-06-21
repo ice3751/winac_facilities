@@ -18,6 +18,7 @@ urlpatterns = [
     path("meals/", include("meals.urls")),
     path("catering/", include("catering.urls")),
     path("reports/", include("reports.urls")),
+    path("attendance/", include("attendance.urls")),
     path("", include("dashboard.urls")),
 ]
 

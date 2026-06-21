@@ -163,6 +163,9 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# کلید احراز هویت API داخلی دستگاه تردد (فاز اتصال دستگاه)
+DEVICE_API_KEY = os.getenv("DEVICE_API_KEY", "")
+
 # --------------------------------------------------------------------------- #
 # امنیت Production (وقتی DEBUG=False فعال می‌شود)
 # --------------------------------------------------------------------------- #

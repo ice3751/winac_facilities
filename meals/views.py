@@ -3,8 +3,9 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
+from django.utils.safestring import mark_safe
 from django.views import View
-from django.views.generic import CreateView, ListView
+from django.views.generic import CreateView, DetailView, ListView
 
 from accounts.models import User
 from core.mixins import RoleRequiredMixin
@@ -102,6 +103,22 @@ class TodayTokensView(RoleRequiredMixin, ListView):
         ctx["count_issued"] = qs.exclude(status=MealToken.Status.CANCELED).count()
         ctx["count_consumed"] = qs.filter(status=MealToken.Status.CONSUMED).count()
         ctx["count_remaining"] = qs.filter(status=MealToken.Status.ISSUED).count()
+        return ctx
+
+
+class TokenPrintView(RoleRequiredMixin, DetailView):
+    """صفحهٔ قابل‌چاپ ژتون به همراه QR Code (فاز ۶)."""
+
+    model = MealToken
+    template_name = "meals/print.html"
+    context_object_name = "token"
+    allowed_roles = MEAL_ROLES
+
+    def get_context_data(self, **kwargs):
+        from .qr import qr_svg
+
+        ctx = super().get_context_data(**kwargs)
+        ctx["qr_svg"] = mark_safe(qr_svg(self.object.token_code))
         return ctx
 
 

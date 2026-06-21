@@ -1,33 +1,64 @@
 :root {
-  --winac-primary: #1f6f54;
-  --winac-primary-dark: #155741;
+  /* رنگ‌های برند وینک، برگرفته از لوگو */
+  --winac-blue: #0e9bd7;        /* آبی فیروزه‌ای لوگو (بخش ac) */
+  --winac-blue-dark: #0a78a8;   /* آبی تیره‌تر برای hover */
+  --winac-blue-light: #aedcf5;  /* آبی روشن لوگو (accent) */
+  --winac-charcoal: #2d2d2d;    /* ذغالی تیره متن لوگو */
+  --winac-charcoal-2: #383838;
+
+  --winac-primary: var(--winac-blue);
+  --winac-primary-dark: var(--winac-blue-dark);
 }
 
 body {
   font-family: Tahoma, "Segoe UI", Vazirmatn, sans-serif;
-  background: #f4f6f8;
+  background: #eef4f8;
+  color: #233;
 }
 
 /* اعداد و کلمات انگلیسی در متن فارسی خواناتر دیده شوند */
 .ltr { direction: ltr; unicode-bidi: embed; display: inline-block; }
 code, .mono { direction: ltr; unicode-bidi: embed; font-family: Consolas, monospace; }
 
+/* نوار بالا: ذغالی تیره با تأکید آبی، دقیقاً مثل لوگو */
 .app-navbar {
-  background: var(--winac-primary);
+  background: var(--winac-charcoal);
+  border-bottom: 3px solid var(--winac-blue);
 }
-.app-navbar .nav-link { font-size: .95rem; }
+.app-navbar .navbar-brand { color: #fff; }
+.app-navbar .navbar-brand .brand-accent { color: var(--winac-blue); }
+.app-navbar .nav-link { font-size: .95rem; color: #d9dde0 !important; }
+.app-navbar .nav-link:hover { color: #fff !important; }
+.app-navbar .nav-link.active { color: var(--winac-blue) !important; }
 
 .stat-card {
   border: none;
   border-radius: .75rem;
-  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  box-shadow: 0 1px 4px rgba(13,80,120,.08);
+  border-top: 3px solid var(--winac-blue);
 }
 .stat-card .stat-value { font-size: 2rem; font-weight: 700; }
 .stat-card .stat-label { color: #6c757d; font-size: .9rem; }
 
-.card { border-radius: .6rem; }
-.table thead { background: #eef2f1; }
-.btn-winac { background: var(--winac-primary); color: #fff; }
-.btn-winac:hover { background: var(--winac-primary-dark); color: #fff; }
+.card { border-radius: .6rem; border-color: #e3edf3; }
+.card-header { background: #f3f9fc; font-weight: 600; }
+.table thead { background: #eaf4fb; }
 
-.page-title { border-right: 4px solid var(--winac-primary); padding-right: .6rem; }
+/* دکمه‌های اصلی با آبی برند */
+.btn-winac { background: var(--winac-blue); color: #fff; border: none; }
+.btn-winac:hover { background: var(--winac-blue-dark); color: #fff; }
+a { color: var(--winac-blue-dark); }
+
+.page-title { border-right: 4px solid var(--winac-blue); padding-right: .6rem; }
+
+/* لینک‌فعال و عناصر متفرقه هماهنگ با تم */
+.badge.bg-primary { background: var(--winac-blue) !important; }
+.btn-outline-primary { color: var(--winac-blue-dark); border-color: var(--winac-blue); }
+.btn-outline-primary:hover { background: var(--winac-blue); border-color: var(--winac-blue); }
+.text-primary { color: var(--winac-blue-dark) !important; }
+.pagination .page-link { color: var(--winac-blue-dark); }
+.pagination .page-item.disabled .page-link { color: #888; }
+
+/* صفحهٔ ورود */
+.login-hero { color: var(--winac-charcoal); }
+.login-hero .brand-accent { color: var(--winac-blue); }

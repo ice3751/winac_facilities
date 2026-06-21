@@ -2,30 +2,28 @@
 {% load static %}
 {% block title %}ورود{% endblock %}
 {% block content %}
-<div class="row justify-content-center align-items-center" style="min-height:70vh">
-  <div class="col-md-5 col-lg-4">
-    <div class="card shadow-sm">
-      <div class="card-body p-4">
-        <div class="text-center mb-4 login-hero">
-          <img src="{% static 'img/winac-logo.svg' %}" alt="winac ویناک" style="max-width:200px">
-          <div class="text-muted mt-2">ورود به سامانهٔ {{ APP_SHORT_NAME }}</div>
-        </div>
-        {% if form.errors %}
-          <div class="alert alert-danger">نام کاربری یا گذرواژه نادرست است.</div>
-        {% endif %}
-        <form method="post">
-          {% csrf_token %}
-          <div class="mb-3">
-            <label class="form-label">نام کاربری</label>
-            <input type="text" name="username" class="form-control" autofocus required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">گذرواژه</label>
-            <input type="password" name="password" class="form-control" required>
-          </div>
-          <button type="submit" class="btn btn-winac w-100">ورود</button>
-        </form>
+<div class="login-wrap">
+  <div class="login-card card">
+    <div class="card-body p-4 p-md-5">
+      <div class="text-center mb-4 login-hero">
+        <img src="{% static 'img/winac-logo.svg' %}" alt="winac ویناک">
+        <div class="text-muted mt-3">ورود به سامانهٔ {{ APP_SHORT_NAME }}</div>
       </div>
+      {% if form.errors %}
+        <div class="alert alert-danger">نام کاربری یا گذرواژه نادرست است.</div>
+      {% endif %}
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label">نام کاربری</label>
+          <input type="text" name="username" class="form-control" autofocus required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">گذرواژه</label>
+          <input type="password" name="password" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-winac w-100 py-2">ورود</button>
+      </form>
     </div>
   </div>
 </div>

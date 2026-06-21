@@ -4,14 +4,14 @@
 <h4 class="page-title mb-4">داشبورد روزانه</h4>
 
 <div class="row g-3 mb-4">
-  {% include "dashboard/_stat.html" with label="مهمان‌های امروز" value=stat_guests_today color="primary" %}
-  {% include "dashboard/_stat.html" with label="پرسنل غذادار امروز" value=stat_personnel_meals color="success" %}
-  {% include "dashboard/_stat.html" with label="مهمان غذادار امروز" value=stat_guest_meals color="info" %}
-  {% include "dashboard/_stat.html" with label="ژتون صادرشده امروز" value=stat_tokens_issued color="secondary" %}
-  {% include "dashboard/_stat.html" with label="ژتون مصرف‌شده امروز" value=stat_tokens_consumed color="success" %}
-  {% include "dashboard/_stat.html" with label="ژتون باقی‌مانده امروز" value=stat_tokens_remaining color="warning" %}
-  {% include "dashboard/_stat.html" with label="درخواست پذیرایی امروز" value=stat_catering_today color="primary" %}
-  {% include "dashboard/_stat.html" with label="پذیرایی آماده‌نشده" value=stat_catering_not_ready color="danger" %}
+  {% include "dashboard/_stat.html" with label="مهمان‌های امروز" value=stat_guests_today tone="primary" icon="users" %}
+  {% include "dashboard/_stat.html" with label="پرسنل غذادار امروز" value=stat_personnel_meals tone="success" icon="meal" %}
+  {% include "dashboard/_stat.html" with label="مهمان غذادار امروز" value=stat_guest_meals tone="info" icon="meal" %}
+  {% include "dashboard/_stat.html" with label="ژتون صادرشده امروز" value=stat_tokens_issued tone="primary" icon="ticket" %}
+  {% include "dashboard/_stat.html" with label="ژتون مصرف‌شده امروز" value=stat_tokens_consumed tone="success" icon="check" %}
+  {% include "dashboard/_stat.html" with label="ژتون باقی‌مانده امروز" value=stat_tokens_remaining tone="warning" icon="clock" %}
+  {% include "dashboard/_stat.html" with label="درخواست پذیرایی امروز" value=stat_catering_today tone="info" icon="coffee" %}
+  {% include "dashboard/_stat.html" with label="پذیرایی آماده‌نشده" value=stat_catering_not_ready tone="danger" icon="alert" %}
 </div>
 
 <div class="card mb-4">

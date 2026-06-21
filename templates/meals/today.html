@@ -7,9 +7,9 @@
 </div>
 
 <div class="row g-3 mb-4">
-  {% include "dashboard/_stat.html" with label="صادرشده" value=count_issued color="secondary" %}
-  {% include "dashboard/_stat.html" with label="مصرف‌شده" value=count_consumed color="success" %}
-  {% include "dashboard/_stat.html" with label="باقی‌مانده" value=count_remaining color="warning" %}
+  {% include "dashboard/_stat.html" with label="صادرشده" value=count_issued tone="primary" icon="ticket" %}
+  {% include "dashboard/_stat.html" with label="مصرف‌شده" value=count_consumed tone="success" icon="check" %}
+  {% include "dashboard/_stat.html" with label="باقی‌مانده" value=count_remaining tone="warning" icon="clock" %}
 </div>
 
 <div class="card"><div class="table-responsive">

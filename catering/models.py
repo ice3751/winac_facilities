@@ -28,6 +28,26 @@ class CateringItem(TimeStampedModel):
         return f"{self.name} ({self.get_unit_display()})"
 
 
+class CateringLocation(TimeStampedModel):
+    """محل پذیرایی قابل تعریف (سالن جلسات، اتاق مهمان و ...).
+
+    برای جلوگیری از رزرو هم‌زمان یک محل در یک بازهٔ زمانی استفاده می‌شود.
+    """
+
+    name = models.CharField("نام محل", max_length=120, unique=True)
+    capacity = models.PositiveIntegerField("ظرفیت", null=True, blank=True)
+    is_active = models.BooleanField("فعال", default=True)
+    description = models.TextField("توضیحات", blank=True)
+
+    class Meta:
+        verbose_name = "محل پذیرایی"
+        verbose_name_plural = "محل‌های پذیرایی"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
 class CateringRequest(TimeStampedModel):
     """درخواست پذیرایی ویژه برای جلسه/مهمان."""
 
@@ -57,7 +77,12 @@ class CateringRequest(TimeStampedModel):
     )
     catering_date = models.DateField("تاریخ پذیرایی", db_index=True)
     prepare_time = models.TimeField("ساعت آماده‌سازی", null=True, blank=True)
-    location = models.CharField("محل پذیرایی", max_length=150, blank=True)
+    location = models.ForeignKey(
+        CateringLocation, verbose_name="محل پذیرایی", on_delete=models.PROTECT,
+        null=True, blank=True, related_name="requests",
+    )
+    start_time = models.TimeField("ساعت شروع", null=True, blank=True)
+    end_time = models.TimeField("ساعت پایان", null=True, blank=True)
     occasion = models.CharField(
         "نوع مناسبت", max_length=15, choices=Occasion.choices, default=Occasion.MEETING
     )
@@ -89,6 +114,22 @@ class CateringRequestItem(TimeStampedModel):
         CateringItem, verbose_name="قلم پذیرایی", on_delete=models.PROTECT, related_name="usages"
     )
     quantity = models.DecimalField("مقدار", max_digits=8, decimal_places=2, default=1)
+    # اقلام نیازمند خرید توسط واحد تأمین
+    needs_purchase = models.BooleanField("نیاز به خرید", default=False)
+
+    class PurchaseStatus(models.TextChoices):
+        PENDING = "pending", "در انتظار تهیه"
+        PURCHASED = "purchased", "تهیه شد"
+
+    purchase_status = models.CharField(
+        "وضعیت تهیه", max_length=10, choices=PurchaseStatus.choices,
+        default=PurchaseStatus.PENDING,
+    )
+    purchased_by = models.ForeignKey(
+        "accounts.User", verbose_name="تهیه‌کننده", on_delete=models.SET_NULL,
+        null=True, blank=True, related_name="purchased_items",
+    )
+    purchased_at = models.DateTimeField("زمان تهیه", null=True, blank=True)
     description = models.CharField("توضیحات", max_length=255, blank=True)
 
     class Meta:

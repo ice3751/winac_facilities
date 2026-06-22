@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}محل‌های پذیرایی{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="page-title mb-0">محل‌های پذیرایی</h4>
+  <a href="{% url 'catering:location_add' %}" class="btn btn-winac btn-sm">+ محل جدید</a>
+</div>
+<div class="card"><div class="table-responsive">
+<table class="table table-hover mb-0">
+  <thead><tr><th>نام محل</th><th>ظرفیت</th><th>وضعیت</th><th></th></tr></thead>
+  <tbody>
+  {% for loc in locations %}
+    <tr><td>{{ loc.name }}</td><td>{{ loc.capacity|default:"-" }}</td>
+      <td>{% if loc.is_active %}<span class="badge bg-success">فعال</span>{% else %}<span class="badge bg-secondary">غیرفعال</span>{% endif %}</td>
+      <td><a href="{% url 'catering:location_edit' loc.pk %}" class="btn btn-sm btn-outline-primary">ویرایش</a></td></tr>
+  {% empty %}<tr><td colspan="4" class="text-center text-muted py-4">محلی تعریف نشده است</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div></div>
+{% endblock %}

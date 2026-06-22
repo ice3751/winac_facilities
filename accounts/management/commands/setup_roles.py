@@ -37,6 +37,9 @@ ROLE_PERMISSIONS = {
         "guests": ["change", "view"],
         "people": ["view"],
     },
+    User.Roles.SUPPLY: {
+        "catering": ["view", "change"],
+    },
     User.Roles.REPORT_VIEWER: {
         "meals": ["view"],
         "guests": ["view"],

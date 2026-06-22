@@ -8,11 +8,22 @@ from django.views.generic import CreateView, DetailView, ListView, UpdateView
 from accounts.models import User
 from core.mixins import RoleRequiredMixin
 
-from .forms import CateringItemForm, CateringRequestForm, CateringRequestItemForm
-from .models import CateringItem, CateringRequest, CateringRequestItem
+from .forms import (
+    CateringItemForm,
+    CateringLocationForm,
+    CateringRequestForm,
+    CateringRequestItemForm,
+)
+from .models import (
+    CateringItem,
+    CateringLocation,
+    CateringRequest,
+    CateringRequestItem,
+)
 
 R = User.Roles
 CATERING_ROLES = (R.PROTOCOL, R.HOST)
+SUPPLY_ROLES = (R.SUPPLY,)
 
 
 # --------------------------------------------------------------------------- #
@@ -176,3 +187,106 @@ class CateringRequestSetStatusView(RoleRequiredMixin, View):
             req.save(update_fields=["status", "updated_at"])
             messages.success(request, f"وضعیت به «{valid[new_status]}» تغییر کرد.")
         return redirect("catering:detail", pk=pk)
+
+
+# --------------------------------------------------------------------------- #
+# محل‌های پذیرایی
+# --------------------------------------------------------------------------- #
+class CateringLocationListView(RoleRequiredMixin, ListView):
+    model = CateringLocation
+    template_name = "catering/locations.html"
+    context_object_name = "locations"
+    allowed_roles = (R.PROTOCOL,)
+
+
+class CateringLocationCreateView(RoleRequiredMixin, CreateView):
+    model = CateringLocation
+    form_class = CateringLocationForm
+    template_name = "crud/form.html"
+    success_url = reverse_lazy("catering:locations")
+    allowed_roles = (R.PROTOCOL,)
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        messages.success(self.request, "محل پذیرایی ثبت شد.")
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["page_title"] = "ثبت محل پذیرایی"
+        ctx["back_url"] = reverse_lazy("catering:locations")
+        return ctx
+
+
+class CateringLocationUpdateView(RoleRequiredMixin, UpdateView):
+    model = CateringLocation
+    form_class = CateringLocationForm
+    template_name = "crud/form.html"
+    success_url = reverse_lazy("catering:locations")
+    allowed_roles = (R.PROTOCOL,)
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["page_title"] = "ویرایش محل پذیرایی"
+        ctx["back_url"] = reverse_lazy("catering:locations")
+        return ctx
+
+
+# --------------------------------------------------------------------------- #
+# پنل واحد تأمین (اقلام مورد نیاز برای خرید)
+# --------------------------------------------------------------------------- #
+class SupplyPanelView(RoleRequiredMixin, ListView):
+    """فهرست اقلامی که نیاز به خرید دارند، برای واحد تأمین."""
+
+    model = CateringRequestItem
+    template_name = "catering/supply.html"
+    context_object_name = "items"
+    paginate_by = 50
+    allowed_roles = SUPPLY_ROLES
+
+    def get_queryset(self):
+        qs = (
+            CateringRequestItem.objects
+            .filter(needs_purchase=True)
+            .select_related("item", "request", "request__location")
+            .order_by("purchase_status", "request__catering_date")
+        )
+        show = self.request.GET.get("show", "pending")
+        if show == "pending":
+            qs = qs.filter(purchase_status=CateringRequestItem.PurchaseStatus.PENDING)
+        elif show == "purchased":
+            qs = qs.filter(purchase_status=CateringRequestItem.PurchaseStatus.PURCHASED)
+        return qs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["show"] = self.request.GET.get("show", "pending")
+        ctx["pending_count"] = CateringRequestItem.objects.filter(
+            needs_purchase=True,
+            purchase_status=CateringRequestItem.PurchaseStatus.PENDING,
+        ).count()
+        return ctx
+
+
+class SupplyMarkPurchasedView(RoleRequiredMixin, View):
+    """علامت‌گذاری یک قلم به‌عنوان تهیه‌شده توسط واحد تأمین."""
+
+    allowed_roles = SUPPLY_ROLES
+
+    def post(self, request, item_pk):
+        item = get_object_or_404(CateringRequestItem, pk=item_pk, needs_purchase=True)
+        if request.POST.get("undo") == "1":
+            item.purchase_status = CateringRequestItem.PurchaseStatus.PENDING
+            item.purchased_by = None
+            item.purchased_at = None
+            messages.info(request, "وضعیت تهیه بازگردانده شد.")
+        else:
+            item.purchase_status = CateringRequestItem.PurchaseStatus.PURCHASED
+            item.purchased_by = request.user
+            item.purchased_at = timezone.now()
+            messages.success(request, f"«{item.item.name}» تهیه‌شده ثبت شد.")
+        item.save(update_fields=[
+            "purchase_status", "purchased_by", "purchased_at", "updated_at",
+        ])
+        show = request.POST.get("show", "pending")
+        return redirect(f"{reverse('catering:supply')}?show={show}")

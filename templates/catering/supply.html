@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}واحد تأمین{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="page-title mb-0">واحد تأمین — اقلام مورد نیاز خرید</h4>
+  <div class="btn-group">
+    <a href="?show=pending" class="btn btn-sm {% if show == 'pending' %}btn-winac{% else %}btn-outline-secondary{% endif %}">
+      در انتظار تهیه ({{ pending_count }})
+    </a>
+    <a href="?show=purchased" class="btn btn-sm {% if show == 'purchased' %}btn-winac{% else %}btn-outline-secondary{% endif %}">تهیه‌شده</a>
+    <a href="?show=all" class="btn btn-sm {% if show == 'all' %}btn-winac{% else %}btn-outline-secondary{% endif %}">همه</a>
+  </div>
+</div>
+
+<div class="card"><div class="table-responsive">
+<table class="table table-hover align-middle mb-0">
+  <thead><tr><th>قلم</th><th>مقدار</th><th>واحد</th><th>درخواست</th><th>تاریخ</th><th>محل</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+  <tbody>
+  {% for it in items %}
+    <tr>
+      <td class="fw-bold">{{ it.item.name }}</td>
+      <td>{{ it.quantity }}</td>
+      <td>{{ it.item.get_unit_display }}</td>
+      <td>{{ it.request.title }}</td>
+      <td>{{ it.request.catering_date }}</td>
+      <td>{{ it.request.location.name|default:"-" }}</td>
+      <td>
+        {% if it.purchase_status == 'purchased' %}
+          <span class="badge bg-success">تهیه شد</span>
+        {% else %}<span class="badge bg-warning">در انتظار تهیه</span>{% endif %}
+      </td>
+      <td>
+        <form method="post" action="{% url 'catering:supply_purchased' it.pk %}" class="d-inline">
+          {% csrf_token %}
+          <input type="hidden" name="show" value="{{ show }}">
+          {% if it.purchase_status == 'purchased' %}
+            <input type="hidden" name="undo" value="1">
+            <button class="btn btn-sm btn-outline-secondary">بازگردانی</button>
+          {% else %}
+            <button class="btn btn-sm btn-success">تهیه شد</button>
+          {% endif %}
+        </form>
+      </td>
+    </tr>
+  {% empty %}<tr><td colspan="8" class="text-center text-muted py-4">قلمی برای نمایش نیست</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div></div>
+{% include "crud/_pagination.html" %}
+{% endblock %}

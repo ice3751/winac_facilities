@@ -5,7 +5,8 @@ from .utils import jalali_today_str
 
 def app_context(request):
     perms_nav = {"people": False, "guests": False, "meals": False,
-                 "catering": False, "reports": False, "guest_approvals": False}
+                 "catering": False, "reports": False, "guest_approvals": False,
+                 "catering_manage": False, "supply": False}
 
     user = getattr(request, "user", None)
     if user is not None and user.is_authenticated:
@@ -18,6 +19,8 @@ def app_context(request):
             "catering": admin or user.role in {R.PROTOCOL, R.HOST},
             "reports": admin or user.role == R.REPORT_VIEWER,
             "guest_approvals": admin or user.role == R.OFFICE_MANAGER,
+            "catering_manage": admin or user.role == R.PROTOCOL,
+            "supply": admin or user.role == R.SUPPLY,
         }
 
     return {

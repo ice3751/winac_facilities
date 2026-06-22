@@ -182,6 +182,71 @@ class GuestApprovalTests(TestCase):
         self.assertEqual(resp.status_code, 403)
 
 
+class CateringLocationConflictTests(TestCase):
+    def setUp(self):
+        from catering.models import CateringLocation
+        self.protocol = User.objects.create_user(
+            username="proto_t", password="pass12345", role=User.Roles.PROTOCOL
+        )
+        self.loc = CateringLocation.objects.create(name="سالن تست")
+        self.client.force_login(self.protocol)
+
+    def _payload(self, start, end, title="جلسه"):
+        return {
+            "title": title, "catering_date": timezone.localdate().isoformat(),
+            "location": self.loc.pk, "start_time": start, "end_time": end,
+            "occasion": "meeting", "headcount": 5, "status": "registered",
+        }
+
+    def test_overlapping_booking_rejected(self):
+        from catering.models import CateringRequest
+        r1 = self.client.post(reverse("catering:add"), self._payload("10:00", "11:00"))
+        self.assertEqual(r1.status_code, 302)
+        self.assertEqual(CateringRequest.objects.count(), 1)
+        # بازهٔ متداخل برای همان محل باید رد شود
+        r2 = self.client.post(reverse("catering:add"),
+                              self._payload("10:30", "11:30", title="جلسه دوم"))
+        self.assertEqual(r2.status_code, 200)  # فرم با خطا برمی‌گردد
+        self.assertEqual(CateringRequest.objects.count(), 1)
+
+    def test_non_overlapping_booking_allowed(self):
+        from catering.models import CateringRequest
+        self.client.post(reverse("catering:add"), self._payload("10:00", "11:00"))
+        r2 = self.client.post(reverse("catering:add"),
+                             self._payload("11:00", "12:00", title="جلسه دوم"))
+        self.assertEqual(r2.status_code, 302)
+        self.assertEqual(CateringRequest.objects.count(), 2)
+
+
+class SupplyPanelTests(TestCase):
+    def setUp(self):
+        from catering.models import (CateringItem, CateringRequest,
+                                     CateringRequestItem)
+        self.supply = User.objects.create_user(
+            username="supply_t", password="pass12345", role=User.Roles.SUPPLY
+        )
+        item = CateringItem.objects.create(name="میوه")
+        req = CateringRequest.objects.create(
+            title="جلسه", catering_date=timezone.localdate(), headcount=3
+        )
+        self.cri = CateringRequestItem.objects.create(
+            request=req, item=item, quantity=2, needs_purchase=True
+        )
+
+    def test_supply_sees_and_marks_purchased(self):
+        from catering.models import CateringRequestItem
+        self.client.force_login(self.supply)
+        resp = self.client.get(reverse("catering:supply"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "میوه")
+        # علامت‌گذاری تهیه‌شده
+        self.client.post(reverse("catering:supply_purchased", args=[self.cri.pk]))
+        self.cri.refresh_from_db()
+        self.assertEqual(self.cri.purchase_status,
+                         CateringRequestItem.PurchaseStatus.PURCHASED)
+        self.assertEqual(self.cri.purchased_by, self.supply)
+
+
 class ChartHelperTests(TestCase):
     def test_bar_chart_renders_svg(self):
         from core.charts import bar_chart

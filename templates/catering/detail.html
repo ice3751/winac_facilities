@@ -15,8 +15,9 @@
       <table class="table table-sm mb-0">
         <tr><th>میزبان</th><td>{{ req.host.full_name|default:"-" }}</td></tr>
         <tr><th>تاریخ</th><td>{{ req.catering_date }}</td></tr>
+        <tr><th>محل</th><td>{{ req.location.name|default:"-" }}</td></tr>
+        <tr><th>بازه زمانی</th><td>{% if req.start_time %}{{ req.start_time|time:"H:i" }} تا {{ req.end_time|time:"H:i" }}{% else %}-{% endif %}</td></tr>
         <tr><th>ساعت آماده‌سازی</th><td>{{ req.prepare_time|default:"-" }}</td></tr>
-        <tr><th>محل</th><td>{{ req.location|default:"-" }}</td></tr>
         <tr><th>مناسبت</th><td>{{ req.get_occasion_display }}</td></tr>
         <tr><th>نفرات</th><td>{{ req.headcount }}</td></tr>
         <tr><th>وضعیت</th><td><span class="badge bg-info text-dark">{{ req.get_status_display }}</span></td></tr>
@@ -40,14 +41,20 @@
     <div class="card"><div class="card-body">
       <h6 class="mb-3">اقلام پذیرایی</h6>
       <table class="table table-sm align-middle">
-        <thead><tr><th>قلم</th><th>مقدار</th><th>واحد</th><th>توضیحات</th><th></th></tr></thead>
+        <thead><tr><th>قلم</th><th>مقدار</th><th>واحد</th><th>خرید</th><th>توضیحات</th><th></th></tr></thead>
         <tbody>
         {% for it in items %}
           <tr><td>{{ it.item.name }}</td><td>{{ it.quantity }}</td><td>{{ it.item.get_unit_display }}</td>
+            <td>
+              {% if it.needs_purchase %}
+                {% if it.purchase_status == 'purchased' %}<span class="badge bg-success">تهیه شد</span>
+                {% else %}<span class="badge bg-warning">نیاز به خرید</span>{% endif %}
+              {% else %}<span class="text-muted">—</span>{% endif %}
+            </td>
             <td>{{ it.description|default:"-" }}</td>
             <td><form method="post" action="{% url 'catering:delete_item' req.pk it.pk %}">{% csrf_token %}
               <button class="btn btn-sm btn-outline-danger">حذف</button></form></td></tr>
-        {% empty %}<tr><td colspan="5" class="text-center text-muted">قلمی اضافه نشده است</td></tr>{% endfor %}
+        {% empty %}<tr><td colspan="6" class="text-center text-muted">قلمی اضافه نشده است</td></tr>{% endfor %}
         </tbody>
       </table>
 

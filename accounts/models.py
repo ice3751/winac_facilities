@@ -14,6 +14,7 @@ class User(AbstractUser):
         PROTOCOL = "protocol", "واحد تشریفات"
         HOST = "host", "مدیر واحد / میزبان"
         OFFICE_MANAGER = "office_manager", "مدیر اداری"
+        SUPPLY = "supply", "واحد تأمین"
         REPORT_VIEWER = "report_viewer", "مدیر گزارش‌گیر"
 
     role = models.CharField(

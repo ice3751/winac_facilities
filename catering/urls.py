@@ -16,4 +16,11 @@ urlpatterns = [
     path("items/", views.CateringItemListView.as_view(), name="items"),
     path("items/add/", views.CateringItemCreateView.as_view(), name="item_add"),
     path("items/<int:pk>/edit/", views.CateringItemUpdateView.as_view(), name="item_edit"),
+
+    path("locations/", views.CateringLocationListView.as_view(), name="locations"),
+    path("locations/add/", views.CateringLocationCreateView.as_view(), name="location_add"),
+    path("locations/<int:pk>/edit/", views.CateringLocationUpdateView.as_view(), name="location_edit"),
+
+    path("supply/", views.SupplyPanelView.as_view(), name="supply"),
+    path("supply/<int:item_pk>/purchased/", views.SupplyMarkPurchasedView.as_view(), name="supply_purchased"),
 ]

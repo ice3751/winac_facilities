@@ -20,6 +20,12 @@
         <tr><th>ساعت آماده‌سازی</th><td>{{ req.prepare_time|default:"-" }}</td></tr>
         <tr><th>مناسبت</th><td>{{ req.get_occasion_display }}</td></tr>
         <tr><th>نفرات</th><td>{{ req.headcount }}</td></tr>
+        <tr><th>تأیید</th><td>
+          {% if req.approval_status == 'approved' %}<span class="badge bg-success">تأییدشده</span>
+          {% elif req.approval_status == 'rejected' %}<span class="badge bg-danger">ردشده</span>
+          {% else %}<span class="badge bg-warning">در انتظار تأیید</span>{% endif %}
+          {% if req.review_note %}<div class="small text-muted mt-1">{{ req.review_note }}</div>{% endif %}
+        </td></tr>
         <tr><th>وضعیت</th><td><span class="badge bg-info text-dark">{{ req.get_status_display }}</span></td></tr>
         <tr><th>توضیحات</th><td>{{ req.description|default:"-" }}</td></tr>
       </table>

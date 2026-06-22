@@ -35,6 +35,7 @@ ROLE_PERMISSIONS = {
     },
     User.Roles.OFFICE_MANAGER: {
         "guests": ["change", "view"],
+        "catering": ["change", "view"],
         "people": ["view"],
     },
     User.Roles.SUPPLY: {

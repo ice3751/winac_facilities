@@ -83,17 +83,23 @@ class GuestUpdateView(RoleRequiredMixin, UpdateView):
     model = Guest
     form_class = GuestForm
     template_name = "crud/form.html"
-    success_url = reverse_lazy("guests:list")
-    allowed_roles = GUEST_ROLES
+    # مدیر اداری هم می‌تواند مهمان (مثلاً نیاز به نهار/پذیرایی) را پیش از تأیید اصلاح کند
+    allowed_roles = (R.RECEPTION, R.HOST, R.OFFICE_MANAGER)
 
     def form_valid(self, form):
         messages.success(self.request, "اطلاعات مهمان به‌روزرسانی شد.")
         return super().form_valid(form)
 
+    def get_success_url(self):
+        # مدیر اداری پس از ویرایش به صفحهٔ تأیید بازگردد
+        if self.request.user.has_role(R.OFFICE_MANAGER) and not self.request.user.is_admin_role:
+            return reverse_lazy("guests:approvals")
+        return reverse_lazy("guests:list")
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["page_title"] = "ویرایش مهمان"
-        ctx["back_url"] = reverse_lazy("guests:list")
+        ctx["back_url"] = self.get_success_url()
         return ctx
 
 

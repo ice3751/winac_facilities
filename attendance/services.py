@@ -9,7 +9,13 @@
 from django.utils import timezone
 
 from meals.models import MealToken
-from meals.services import MealTokenError, issue_token
+from meals.services import (
+    MealTokenError,
+    issue_token,
+    lunch_cutoff_message,
+    lunch_window_open,
+    mark_printed,
+)
 from people.models import Personnel
 
 from .models import AttendanceEvent
@@ -41,6 +47,9 @@ def process_event(event, *, user=None):
         return event
 
     if event.event_type == AttendanceEvent.EventType.MEAL_REQUEST:
+        # محدودیت زمانی: صدور ژتون نهار فقط تا ساعت ۱۰ صبح
+        if not lunch_window_open():
+            return _mark(AttendanceEvent.ProcessingStatus.ERROR, lunch_cutoff_message())
         personnel = _resolve_personnel(event.card_or_fingerprint)
         if personnel is None:
             return _mark(
@@ -48,7 +57,7 @@ def process_event(event, *, user=None):
                 f"کارت ناشناخته یا غیرفعال: {event.card_or_fingerprint}",
             )
         try:
-            issue_token(
+            token = issue_token(
                 recipient_type=MealToken.RecipientType.PERSONNEL,
                 personnel=personnel,
                 user=user,
@@ -58,6 +67,8 @@ def process_event(event, *, user=None):
         except MealTokenError as exc:
             # تکراری بودن یک نتیجهٔ معنادار است؛ به‌صورت خطای پردازش ثبت می‌شود
             return _mark(AttendanceEvent.ProcessingStatus.ERROR, str(exc))
+        # چاپ فیش توسط دستگاه = مصرف ژتون (بدون نیاز به تأیید مسئول رستوران)
+        mark_printed(token, user=user)
         return _mark(AttendanceEvent.ProcessingStatus.PROCESSED)
 
     # ورود/خروج: قلاب آماده برای فاز بعد (مثلاً به‌روزرسانی وضعیت مهمان)

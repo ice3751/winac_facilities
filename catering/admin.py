@@ -32,11 +32,12 @@ class CateringRequestItemInline(admin.TabularInline):
 class CateringRequestAdmin(admin.ModelAdmin):
     list_display = (
         "title", "host", "catering_date", "location", "start_time", "end_time",
-        "occasion", "headcount", "status",
+        "occasion", "headcount", "approval_status", "status",
     )
-    list_filter = ("status", "occasion", "catering_date", "location")
+    list_filter = ("approval_status", "status", "occasion", "catering_date", "location")
     search_fields = ("title",)
-    autocomplete_fields = ("host", "location")
+    autocomplete_fields = ("host", "location", "approved_by")
+    readonly_fields = ("approved_by", "approved_at")
     date_hierarchy = "catering_date"
     inlines = [CateringRequestItemInline]
 

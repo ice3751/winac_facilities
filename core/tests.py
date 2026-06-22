@@ -35,9 +35,9 @@ class PageSmokeTests(TestCase):
         for name in [
             "dashboard:home", "people:list", "people:add", "guests:list",
             "guests:cards", "guests:assignments", "guests:assignment_add",
-            "guests:approvals", "meals:issue", "meals:consume",
+            "guests:approvals", "meals:issue",
             "meals:today", "meals:plans", "catering:list", "catering:items",
-            "reports:index",
+            "catering:approvals", "reports:index",
         ]:
             with self.subTest(url=name):
                 resp = self.client.get(reverse(name))
@@ -93,13 +93,20 @@ class MealTokenRuleTests(TestCase):
         self.assertNotEqual(token.pk, token2.pk)
 
 
-@override_settings(DEVICE_API_KEY="test-key")
+@override_settings(DEVICE_API_KEY="test-key", MEAL_TOKEN_CUTOFF_ENABLED=False)
 class AttendanceIntegrationTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.person = Personnel.objects.create(
             first_name="کارت", last_name="دار", personnel_code="7001", card_id="CARD-7001"
         )
+
+    def test_meal_request_issues_and_consumes_token(self):
+        """رویداد دستگاه = صدور + مصرف خودکار (چاپ فیش)."""
+        event = self._make_event()
+        process_event(event)
+        token = MealToken.objects.get(personnel=self.person)
+        self.assertEqual(token.status, MealToken.Status.CONSUMED)
 
     def _make_event(self, card="CARD-7001"):
         return AttendanceEvent.objects.create(
@@ -181,7 +188,57 @@ class GuestApprovalTests(TestCase):
         resp = self.client.get(reverse("guests:approvals"))
         self.assertEqual(resp.status_code, 403)
 
+    def test_office_manager_can_edit_guest(self):
+        guest = Guest.objects.create(
+            first_name="قابل", last_name="ویرایش", visit_date=timezone.localdate(),
+            needs_lunch=True, approval_status=Guest.ApprovalStatus.PENDING,
+        )
+        self.client.force_login(self.office)
+        resp = self.client.post(reverse("guests:edit", args=[guest.pk]), {
+            "first_name": "قابل", "last_name": "ویرایش", "company": "",
+            "guest_type": Guest.GuestType.VISITOR, "phone": "",
+            "visit_date": timezone.localdate().isoformat(),
+            "status": Guest.Status.REGISTERED,  # نهار حذف شد
+        })
+        self.assertEqual(resp.status_code, 302)
+        guest.refresh_from_db()
+        self.assertFalse(guest.needs_lunch)
 
+
+class MealCutoffTests(TestCase):
+    def test_window_open_before_and_after_cutoff(self):
+        import datetime
+        from django.utils import timezone as tz
+        from meals.services import lunch_window_open
+
+        tzinfo = tz.get_current_timezone()
+        morning = datetime.datetime(2026, 6, 22, 9, 0, tzinfo=tzinfo)
+        noon = datetime.datetime(2026, 6, 22, 11, 0, tzinfo=tzinfo)
+        with override_settings(MEAL_TOKEN_CUTOFF_ENABLED=True, MEAL_TOKEN_CUTOFF_HOUR=10):
+            self.assertTrue(lunch_window_open(morning))
+            self.assertFalse(lunch_window_open(noon))
+
+
+class TokenPrintConsumeTests(TestCase):
+    def test_printing_marks_consumed(self):
+        person = Personnel.objects.create(
+            first_name="چاپ", last_name="مصرف", personnel_code="5001"
+        )
+        token = issue_token(
+            recipient_type=MealToken.RecipientType.PERSONNEL, personnel=person
+        )
+        self.assertEqual(token.status, MealToken.Status.ISSUED)
+        restaurant = User.objects.create_user(
+            username="rest_t", password="pass12345", role=User.Roles.RESTAURANT
+        )
+        self.client.force_login(restaurant)
+        resp = self.client.get(reverse("meals:print", args=[token.pk]))
+        self.assertEqual(resp.status_code, 200)
+        token.refresh_from_db()
+        self.assertEqual(token.status, MealToken.Status.CONSUMED)
+
+
+@override_settings(MEAL_TOKEN_CUTOFF_ENABLED=False)
 class CateringLocationConflictTests(TestCase):
     def setUp(self):
         from catering.models import CateringLocation
@@ -265,6 +322,42 @@ class SupplyPanelTests(TestCase):
         self.assertEqual(self.cri.purchase_status,
                          CateringRequestItem.PurchaseStatus.PURCHASED)
         self.assertEqual(self.cri.purchased_by, self.supply)
+
+
+class CateringApprovalTests(TestCase):
+    def setUp(self):
+        from catering.models import CateringRequest
+        self.CateringRequest = CateringRequest
+        self.protocol = User.objects.create_user(
+            username="proto2", password="pass12345", role=User.Roles.PROTOCOL
+        )
+        self.office = User.objects.create_user(
+            username="office2", password="pass12345", role=User.Roles.OFFICE_MANAGER
+        )
+        self.req = CateringRequest.objects.create(
+            title="جلسهٔ تست", catering_date=timezone.localdate(), headcount=4,
+            approval_status=CateringRequest.ApprovalStatus.PENDING,
+        )
+
+    def test_office_manager_approves_catering(self):
+        self.client.force_login(self.office)
+        resp = self.client.post(reverse("catering:review", args=[self.req.pk]),
+                                {"decision": "reject", "review_note": "نیازی نیست"})
+        self.assertEqual(resp.status_code, 302)
+        self.req.refresh_from_db()
+        self.assertEqual(self.req.approval_status,
+                         self.CateringRequest.ApprovalStatus.REJECTED)
+        self.assertEqual(self.req.approved_by, self.office)
+
+    def test_protocol_cannot_access_catering_approvals(self):
+        self.client.force_login(self.protocol)
+        resp = self.client.get(reverse("catering:approvals"))
+        self.assertEqual(resp.status_code, 403)
+
+    def test_office_manager_can_edit_catering(self):
+        self.client.force_login(self.office)
+        resp = self.client.get(reverse("catering:edit", args=[self.req.pk]))
+        self.assertEqual(resp.status_code, 200)
 
 
 class GuestStationingLocationTests(TestCase):

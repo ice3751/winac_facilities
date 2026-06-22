@@ -30,7 +30,7 @@
     </a>
     {% endif %}
 
-    {% if perms_nav.guests or perms_nav.guest_approvals %}
+    {% if perms_nav.guests %}
     <div class="s-group" data-group>
       <button type="button" class="s-link s-toggle">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
@@ -38,9 +38,22 @@
         <svg class="s-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
       <div class="s-submenu">
-        {% if perms_nav.guests %}<a class="s-sub" href="{% url 'guests:list' %}" data-match="/guests/">فهرست مهمان‌ها</a>{% endif %}
+        <a class="s-sub" href="{% url 'guests:list' %}" data-match="/guests/">فهرست مهمان‌ها</a>
+        <a class="s-sub" href="{% url 'guests:cards' %}" data-match="/guests/cards/">کارت‌ها</a>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if perms_nav.approvals %}
+    <div class="s-group" data-group>
+      <button type="button" class="s-link s-toggle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <span>تأییدها</span>
+        <svg class="s-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="s-submenu">
         {% if perms_nav.guest_approvals %}<a class="s-sub" href="{% url 'guests:approvals' %}" data-match="/guests/approvals/">تأیید مهمان‌ها</a>{% endif %}
-        {% if perms_nav.guests %}<a class="s-sub" href="{% url 'guests:cards' %}" data-match="/guests/cards/">کارت‌ها</a>{% endif %}
+        {% if perms_nav.catering_approvals %}<a class="s-sub" href="{% url 'catering:approvals' %}" data-match="/catering/approvals/">تأیید پذیرایی</a>{% endif %}
       </div>
     </div>
     {% endif %}
@@ -54,7 +67,6 @@
       </button>
       <div class="s-submenu">
         <a class="s-sub" href="{% url 'meals:issue' %}" data-match="/meals/issue/">صدور ژتون</a>
-        <a class="s-sub" href="{% url 'meals:consume' %}" data-match="/meals/consume/">مصرف ژتون</a>
         <a class="s-sub" href="{% url 'meals:today' %}" data-match="/meals/today/">ژتون‌های امروز</a>
         <a class="s-sub" href="{% url 'meals:plans' %}" data-match="/meals/plans/">برنامه نهار روزانه</a>
       </div>

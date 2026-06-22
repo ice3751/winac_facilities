@@ -6,7 +6,6 @@ app_name = "meals"
 
 urlpatterns = [
     path("issue/", views.IssueTokenView.as_view(), name="issue"),
-    path("consume/", views.ConsumeTokenView.as_view(), name="consume"),
     path("today/", views.TodayTokensView.as_view(), name="today"),
     path("token/<int:pk>/print/", views.TokenPrintView.as_view(), name="print"),
     path("plans/", views.DailyMealPlanListView.as_view(), name="plans"),

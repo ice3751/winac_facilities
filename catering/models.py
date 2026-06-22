@@ -66,6 +66,11 @@ class CateringRequest(TimeStampedModel):
         DELIVERED = "delivered", "تحویل‌شده"
         CANCELED = "canceled", "لغو شده"
 
+    class ApprovalStatus(models.TextChoices):
+        PENDING = "pending", "در انتظار تأیید"
+        APPROVED = "approved", "تأییدشده"
+        REJECTED = "rejected", "ردشده"
+
     title = models.CharField("عنوان درخواست", max_length=150)
     host = models.ForeignKey(
         "people.Personnel",
@@ -90,6 +95,17 @@ class CateringRequest(TimeStampedModel):
     status = models.CharField(
         "وضعیت", max_length=15, choices=Status.choices, default=Status.REGISTERED
     )
+    # گردش‌کار تأیید: ثبت توسط واحد تشریفات/میزبان، تأیید/رد توسط مدیر اداری
+    approval_status = models.CharField(
+        "وضعیت تأیید", max_length=10, choices=ApprovalStatus.choices,
+        default=ApprovalStatus.PENDING, db_index=True,
+    )
+    approved_by = models.ForeignKey(
+        "accounts.User", verbose_name="تأییدکننده", on_delete=models.SET_NULL,
+        null=True, blank=True, related_name="approved_caterings",
+    )
+    approved_at = models.DateTimeField("زمان تأیید/رد", null=True, blank=True)
+    review_note = models.CharField("توضیح تأیید/رد", max_length=255, blank=True)
     description = models.TextField("توضیحات", blank=True)
 
     class Meta:

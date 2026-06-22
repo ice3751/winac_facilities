@@ -27,6 +27,9 @@ from .models import (
 R = User.Roles
 CATERING_ROLES = (R.PROTOCOL, R.HOST)
 SUPPLY_ROLES = (R.SUPPLY,)
+APPROVAL_ROLES = (R.OFFICE_MANAGER,)
+# مدیر اداری می‌تواند درخواست تأییدنشده را ویرایش کند
+CATERING_EDIT_ROLES = (R.PROTOCOL, R.HOST, R.OFFICE_MANAGER)
 
 
 # --------------------------------------------------------------------------- #
@@ -119,6 +122,11 @@ class _CateringRequestFormMixin:
         is_new = form.instance.pk is None
         if is_new:
             form.instance.created_by = self.request.user
+            # ثبتِ مدیر اداری/سیستم خودبه‌خود تأیید است؛ بقیه در انتظار تأیید
+            if self.request.user.has_role(R.OFFICE_MANAGER):
+                form.instance.approval_status = CateringRequest.ApprovalStatus.APPROVED
+                form.instance.approved_by = self.request.user
+                form.instance.approved_at = timezone.now()
         self.object = form.save()
         formset.instance = self.object
         items = formset.save(commit=False)
@@ -160,7 +168,7 @@ class CateringRequestCreateView(_CateringRequestFormMixin, RoleRequiredMixin, Cr
 
 
 class CateringRequestUpdateView(_CateringRequestFormMixin, RoleRequiredMixin, UpdateView):
-    allowed_roles = CATERING_ROLES
+    allowed_roles = CATERING_EDIT_ROLES  # شامل مدیر اداری برای اصلاح پیش از تأیید
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -177,7 +185,7 @@ class CateringRequestDetailView(RoleRequiredMixin, DetailView):
     model = CateringRequest
     template_name = "catering/detail.html"
     context_object_name = "req"
-    allowed_roles = CATERING_ROLES
+    allowed_roles = CATERING_EDIT_ROLES
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -333,3 +341,51 @@ class SupplyMarkPurchasedView(RoleRequiredMixin, View):
         ])
         show = request.POST.get("show", "pending")
         return redirect(f"{reverse('catering:supply')}?show={show}")
+
+
+# --------------------------------------------------------------------------- #
+# تأیید پذیرایی توسط مدیر اداری
+# --------------------------------------------------------------------------- #
+class CateringApprovalListView(RoleRequiredMixin, ListView):
+    """فهرست درخواست‌های پذیرایی در انتظار تأیید برای مدیر اداری."""
+
+    model = CateringRequest
+    template_name = "catering/approvals.html"
+    context_object_name = "requests"
+    paginate_by = 25
+    allowed_roles = APPROVAL_ROLES
+
+    def get_queryset(self):
+        return (
+            super().get_queryset()
+            .filter(approval_status=CateringRequest.ApprovalStatus.PENDING)
+            .select_related("host", "location", "created_by")
+            .order_by("catering_date")
+        )
+
+
+class CateringReviewView(RoleRequiredMixin, View):
+    """تأیید یا رد یک درخواست پذیرایی توسط مدیر اداری."""
+
+    allowed_roles = APPROVAL_ROLES
+
+    def post(self, request, pk):
+        req = get_object_or_404(CateringRequest, pk=pk)
+        decision = request.POST.get("decision")
+        note = request.POST.get("review_note", "").strip()
+        if decision == "approve":
+            req.approval_status = CateringRequest.ApprovalStatus.APPROVED
+            messages.success(request, f"پذیرایی «{req.title}» تأیید شد.")
+        elif decision == "reject":
+            req.approval_status = CateringRequest.ApprovalStatus.REJECTED
+            messages.warning(request, f"پذیرایی «{req.title}» رد شد.")
+        else:
+            messages.error(request, "تصمیم نامعتبر است.")
+            return redirect("catering:approvals")
+        req.approved_by = request.user
+        req.approved_at = timezone.now()
+        req.review_note = note
+        req.save(update_fields=[
+            "approval_status", "approved_by", "approved_at", "review_note", "updated_at",
+        ])
+        return redirect("catering:approvals")

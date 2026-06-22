@@ -179,6 +179,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # کلید احراز هویت API داخلی دستگاه تردد (فاز اتصال دستگاه)
 DEVICE_API_KEY = os.getenv("DEVICE_API_KEY", "")
 
+# سقف زمانی صدور ژتون نهار (تا ساعت ۱۰ صبح همان روز)
+MEAL_TOKEN_CUTOFF_ENABLED = env_bool("MEAL_TOKEN_CUTOFF_ENABLED", True)
+MEAL_TOKEN_CUTOFF_HOUR = int(os.getenv("MEAL_TOKEN_CUTOFF_HOUR", "10"))
+
 # --------------------------------------------------------------------------- #
 # امنیت Production (وقتی DEBUG=False فعال می‌شود)
 # --------------------------------------------------------------------------- #

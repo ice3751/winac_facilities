@@ -83,6 +83,7 @@
       </button>
       <div class="s-submenu">
         <a class="s-sub" href="{% url 'catering:list' %}" data-match="/catering/">درخواست‌های پذیرایی</a>
+        <a class="s-sub" href="{% url 'catering:add' %}" data-match="/catering/add/">ثبت درخواست</a>
         {% if perms_nav.catering_manage %}<a class="s-sub" href="{% url 'catering:items' %}" data-match="/catering/items/">اقلام پذیرایی</a>{% endif %}
         {% if perms_nav.catering_manage %}<a class="s-sub" href="{% url 'catering:locations' %}" data-match="/catering/locations/">محل‌های پذیرایی</a>{% endif %}
       </div>

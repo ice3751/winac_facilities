@@ -23,6 +23,7 @@ class User(AbstractUser):
         choices=Roles.choices,
         default=Roles.HOST,
     )
+    org_unit = models.CharField("واحد سازمانی", max_length=120, blank=True)
     full_name_fa = models.CharField("نام کامل (فارسی)", max_length=150, blank=True)
 
     class Meta:

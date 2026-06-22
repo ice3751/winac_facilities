@@ -8,11 +8,14 @@ from django.views.generic import CreateView, DetailView, ListView, UpdateView
 from accounts.models import User
 from core.mixins import RoleRequiredMixin
 
+from django.db import transaction
+
 from .forms import (
     CateringItemForm,
     CateringLocationForm,
     CateringRequestForm,
     CateringRequestItemForm,
+    CateringRequestItemFormSet,
 )
 from .models import (
     CateringItem,
@@ -92,20 +95,62 @@ class CateringRequestListView(RoleRequiredMixin, ListView):
         return ctx
 
 
-class CateringRequestCreateView(RoleRequiredMixin, CreateView):
+class _CateringRequestFormMixin:
+    """منطق مشترک ثبت/ویرایش درخواست پذیرایی همراه با فرم‌ست اقلام."""
+
     model = CateringRequest
     form_class = CateringRequestForm
-    template_name = "crud/form.html"
+    template_name = "catering/form.html"
+
+    def _make_formset(self):
+        return CateringRequestItemFormSet(
+            self.request.POST or None,
+            instance=self.object,
+            prefix="items",
+        )
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx.setdefault("formset", self._make_formset())
+        return ctx
+
+    @transaction.atomic
+    def _save_all(self, form, formset):
+        is_new = form.instance.pk is None
+        if is_new:
+            form.instance.created_by = self.request.user
+        self.object = form.save()
+        formset.instance = self.object
+        items = formset.save(commit=False)
+        for it in items:
+            if it.created_by_id is None:
+                it.created_by = self.request.user
+            it.save()
+        for obj in formset.deleted_objects:
+            obj.delete()
+        return self.object
+
+    def _handle_post(self, request):
+        form = self.get_form()
+        formset = CateringRequestItemFormSet(
+            request.POST, instance=self.object, prefix="items"
+        )
+        if form.is_valid() and formset.is_valid():
+            self._save_all(form, formset)
+            messages.success(request, "درخواست پذیرایی و اقلام آن ذخیره شد.")
+            return redirect("catering:detail", pk=self.object.pk)
+        return self.render_to_response(self.get_context_data(form=form, formset=formset))
+
+
+class CateringRequestCreateView(_CateringRequestFormMixin, RoleRequiredMixin, CreateView):
     allowed_roles = CATERING_ROLES
 
     def get_initial(self):
         return {"catering_date": timezone.localdate()}
 
-    def form_valid(self, form):
-        form.instance.created_by = self.request.user
-        messages.success(self.request, "درخواست پذیرایی ثبت شد. اکنون اقلام را اضافه کنید.")
-        self.object = form.save()
-        return redirect("catering:detail", pk=self.object.pk)
+    def post(self, request, *args, **kwargs):
+        self.object = None
+        return self._handle_post(request)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -114,14 +159,12 @@ class CateringRequestCreateView(RoleRequiredMixin, CreateView):
         return ctx
 
 
-class CateringRequestUpdateView(RoleRequiredMixin, UpdateView):
-    model = CateringRequest
-    form_class = CateringRequestForm
-    template_name = "crud/form.html"
+class CateringRequestUpdateView(_CateringRequestFormMixin, RoleRequiredMixin, UpdateView):
     allowed_roles = CATERING_ROLES
 
-    def get_success_url(self):
-        return reverse("catering:detail", args=[self.object.pk])
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return self._handle_post(request)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)

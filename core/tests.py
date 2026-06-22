@@ -196,6 +196,9 @@ class CateringLocationConflictTests(TestCase):
             "title": title, "catering_date": timezone.localdate().isoformat(),
             "location": self.loc.pk, "start_time": start, "end_time": end,
             "occasion": "meeting", "headcount": 5, "status": "registered",
+            # فرم‌ست اقلام (خالی)
+            "items-TOTAL_FORMS": "0", "items-INITIAL_FORMS": "0",
+            "items-MIN_NUM_FORMS": "0", "items-MAX_NUM_FORMS": "1000",
         }
 
     def test_overlapping_booking_rejected(self):
@@ -216,6 +219,23 @@ class CateringLocationConflictTests(TestCase):
                              self._payload("11:00", "12:00", title="جلسه دوم"))
         self.assertEqual(r2.status_code, 302)
         self.assertEqual(CateringRequest.objects.count(), 2)
+
+    def test_create_with_inline_items_flows_to_supply(self):
+        from catering.models import CateringItem, CateringRequestItem
+        item = CateringItem.objects.create(name="شیرینی")
+        payload = self._payload("13:00", "14:00", title="جلسه با اقلام")
+        payload.update({
+            "items-TOTAL_FORMS": "1",
+            "items-0-item": item.pk,
+            "items-0-quantity": "3",
+            "items-0-needs_purchase": "on",
+            "items-0-description": "",
+        })
+        resp = self.client.post(reverse("catering:add"), payload)
+        self.assertEqual(resp.status_code, 302)
+        cri = CateringRequestItem.objects.get(item=item)
+        self.assertTrue(cri.needs_purchase)
+        self.assertEqual(cri.purchase_status, CateringRequestItem.PurchaseStatus.PENDING)
 
 
 class SupplyPanelTests(TestCase):

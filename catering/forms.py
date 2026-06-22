@@ -1,5 +1,6 @@
 from django import forms
 from django.db.models import Q
+from django.forms import inlineformset_factory
 
 from core.forms import BootstrapFormMixin
 
@@ -77,3 +78,22 @@ class CateringRequestItemForm(BootstrapFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["item"].queryset = CateringItem.objects.filter(is_active=True)
+        self.fields["item"].required = False  # ردیف‌های خالیِ فرم‌ست نادیده گرفته شوند
+
+    def clean(self):
+        cleaned = super().clean()
+        # اگر ردیف پر شده ولی قلم انتخاب نشده، خطا بده (مگر اینکه حذف شده باشد)
+        if self.has_changed() and not cleaned.get("item") and not cleaned.get("DELETE"):
+            self.add_error("item", "لطفاً قلم را انتخاب کنید یا ردیف را حذف کنید.")
+        return cleaned
+
+
+# فرم‌ست افزودن چند قلم به‌صورت هم‌زمان داخل فرم درخواست پذیرایی
+CateringRequestItemFormSet = inlineformset_factory(
+    CateringRequest,
+    CateringRequestItem,
+    form=CateringRequestItemForm,
+    fields=["item", "quantity", "needs_purchase", "description"],
+    extra=1,
+    can_delete=True,
+)

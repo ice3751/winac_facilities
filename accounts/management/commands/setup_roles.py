@@ -33,10 +33,12 @@ ROLE_PERMISSIONS = {
         "guests": ["add", "change", "view"],
         "catering": ["add", "change", "view"],
     },
+    # مدیر اداری: دسترسی کامل به ماژول‌های برنامه (به‌جز پنل مدیریت سیستم)
     User.Roles.OFFICE_MANAGER: {
-        "guests": ["change", "view"],
-        "catering": ["change", "view"],
-        "people": ["view"],
+        "people": ["add", "change", "delete", "view"],
+        "guests": ["add", "change", "delete", "view"],
+        "meals": ["add", "change", "delete", "view"],
+        "catering": ["add", "change", "delete", "view"],
     },
     User.Roles.SUPPLY: {
         "catering": ["view", "change"],

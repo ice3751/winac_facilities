@@ -188,6 +188,20 @@ class GuestApprovalTests(TestCase):
         resp = self.client.get(reverse("guests:approvals"))
         self.assertEqual(resp.status_code, 403)
 
+    def test_office_manager_has_full_app_access(self):
+        # مدیر اداری باید به همهٔ منوها دسترسی داشته باشد (به‌جز پنل مدیریت سیستم)
+        self.client.force_login(self.office)
+        for name in [
+            "people:list", "guests:list", "guests:cards", "meals:issue",
+            "meals:today", "catering:list", "catering:items",
+            "catering:locations", "catering:supply", "reports:index",
+        ]:
+            with self.subTest(url=name):
+                resp = self.client.get(reverse(name))
+                self.assertEqual(resp.status_code, 200, f"{name} → {resp.status_code}")
+        # اما به پنل مدیریت Django دسترسی ندارد (کاربر staff نیست)
+        self.assertFalse(self.office.is_staff)
+
     def test_office_manager_can_edit_guest(self):
         guest = Guest.objects.create(
             first_name="قابل", last_name="ویرایش", visit_date=timezone.localdate(),

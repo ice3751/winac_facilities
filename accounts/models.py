@@ -41,5 +41,11 @@ class User(AbstractUser):
     def is_admin_role(self):
         return self.is_superuser or self.role == self.Roles.ADMIN
 
+    @property
+    def has_full_app_access(self):
+        """دسترسی کامل به همهٔ منوها و ویرایش‌های برنامه (مثل ادمین)،
+        اما بدون پنل «مدیریت سیستم». شامل مدیر سیستم و مدیر اداری است."""
+        return self.is_admin_role or self.role == self.Roles.OFFICE_MANAGER
+
     def has_role(self, *roles):
         return self.is_admin_role or self.role in roles

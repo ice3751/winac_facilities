@@ -13,18 +13,20 @@ def app_context(request):
     if user is not None and user.is_authenticated:
         R = user.Roles
         admin = user.is_admin_role
+        # مدیر اداری دسترسی کامل برنامه دارد (همهٔ منوها، به‌جز «مدیریت سیستم»)
+        full = user.has_full_app_access
         is_office = admin or user.role == R.OFFICE_MANAGER
         perms_nav = {
-            "people": admin or user.role in {R.RECEPTION, R.RESTAURANT, R.HOST},
-            "guests": admin or user.role in {R.RECEPTION, R.HOST},
-            "meals": admin or user.role in {R.RESTAURANT, R.RECEPTION},
-            "catering": admin or user.role in {R.PROTOCOL, R.HOST},
-            "reports": admin or user.role == R.REPORT_VIEWER,
+            "people": full or user.role in {R.RECEPTION, R.RESTAURANT, R.HOST},
+            "guests": full or user.role in {R.RECEPTION, R.HOST},
+            "meals": full or user.role in {R.RESTAURANT, R.RECEPTION},
+            "catering": full or user.role in {R.PROTOCOL, R.HOST},
+            "reports": full or user.role == R.REPORT_VIEWER,
             "guest_approvals": is_office,
             "catering_approvals": is_office,
             "approvals": is_office,
-            "catering_manage": admin or user.role == R.PROTOCOL,
-            "supply": admin or user.role == R.SUPPLY,
+            "catering_manage": full or user.role == R.PROTOCOL,
+            "supply": full or user.role == R.SUPPLY,
         }
 
     return {

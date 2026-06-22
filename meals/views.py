@@ -1,34 +1,47 @@
 from django.contrib import messages
-from django.db.models import Q
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
+from django.utils.safestring import mark_safe
 from django.views import View
-from django.views.generic import CreateView, ListView
+from django.views.generic import CreateView, DetailView, ListView
 
 from accounts.models import User
 from core.mixins import RoleRequiredMixin
 
 from .forms import DailyMealPlanForm, IssueTokenForm
 from .models import DailyMealPlan, MealToken
-from .services import MealTokenError, consume_token, issue_token
+from .services import (
+    MealTokenError,
+    issue_token,
+    lunch_cutoff_message,
+    lunch_window_open,
+    mark_printed,
+)
 
 R = User.Roles
 MEAL_ROLES = (R.RESTAURANT, R.RECEPTION)
 
 
 class IssueTokenView(RoleRequiredMixin, View):
-    """صدور ژتون غذا با جلوگیری از تکرار روزانه."""
+    """صدور ژتون غذا با جلوگیری از تکرار روزانه و سقف زمانی صبح."""
 
     allowed_roles = MEAL_ROLES
     template_name = "meals/issue.html"
 
     def get(self, request):
-        return render(request, self.template_name, {"form": IssueTokenForm()})
+        return render(request, self.template_name, {
+            "form": IssueTokenForm(), "window_open": lunch_window_open(),
+            "cutoff_message": lunch_cutoff_message(),
+        })
 
     def post(self, request):
         form = IssueTokenForm(request.POST)
         if not form.is_valid():
+            return render(request, self.template_name, {"form": form})
+        # محدودیت زمانی: صدور ژتون نهار فقط تا ساعت ۱۰ صبح
+        if not lunch_window_open():
+            messages.error(request, lunch_cutoff_message())
             return render(request, self.template_name, {"form": form})
         cd = form.cleaned_data
         try:
@@ -44,46 +57,11 @@ class IssueTokenView(RoleRequiredMixin, View):
             return render(request, self.template_name, {"form": form})
         messages.success(
             request,
-            f"ژتون «{token.token_code}» برای «{token.recipient_name}» صادر شد.",
+            f"ژتون «{token.token_code}» برای «{token.recipient_name}» صادر شد. "
+            "با چاپ، ژتون به‌صورت خودکار مصرف‌شده ثبت می‌شود.",
         )
-        return redirect("meals:issue")
-
-
-class ConsumeTokenView(RoleRequiredMixin, View):
-    """جستجو و ثبت مصرف ژتون توسط مسئول رستوران."""
-
-    allowed_roles = MEAL_ROLES
-    template_name = "meals/consume.html"
-
-    def get_today_tokens(self, query):
-        today = timezone.localdate()
-        qs = MealToken.objects.filter(date=today).select_related("personnel", "guest")
-        if query:
-            qs = qs.filter(
-                Q(token_code__icontains=query)
-                | Q(personnel__first_name__icontains=query)
-                | Q(personnel__last_name__icontains=query)
-                | Q(guest__first_name__icontains=query)
-                | Q(guest__last_name__icontains=query)
-            )
-        return qs.order_by("status", "-issued_at")
-
-    def get(self, request):
-        query = request.GET.get("q", "").strip()
-        return render(request, self.template_name, {
-            "query": query, "tokens": self.get_today_tokens(query),
-        })
-
-    def post(self, request):
-        token = get_object_or_404(MealToken, pk=request.POST.get("token_id"))
-        try:
-            consume_token(token, user=request.user)
-        except MealTokenError as exc:
-            messages.error(request, str(exc))
-        else:
-            messages.success(request, f"ژتون «{token.token_code}» مصرف شد.")
-        q = request.POST.get("q", "")
-        return redirect(f"{reverse_lazy('meals:consume')}?q={q}")
+        # هدایت به صفحهٔ چاپ؛ چاپ = ثبت مصرف
+        return redirect("meals:print", pk=token.pk)
 
 
 class TodayTokensView(RoleRequiredMixin, ListView):
@@ -102,6 +80,29 @@ class TodayTokensView(RoleRequiredMixin, ListView):
         ctx["count_issued"] = qs.exclude(status=MealToken.Status.CANCELED).count()
         ctx["count_consumed"] = qs.filter(status=MealToken.Status.CONSUMED).count()
         ctx["count_remaining"] = qs.filter(status=MealToken.Status.ISSUED).count()
+        return ctx
+
+
+class TokenPrintView(RoleRequiredMixin, DetailView):
+    """صفحهٔ قابل‌چاپ ژتون به همراه QR Code. چاپ = ثبت مصرف خودکار."""
+
+    model = MealToken
+    template_name = "meals/print.html"
+    context_object_name = "token"
+    allowed_roles = MEAL_ROLES
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        # چاپ ژتون به‌منزلهٔ مصرف آن است (بدون نیاز به تأیید مسئول رستوران)
+        mark_printed(self.object, user=request.user)
+        context = self.get_context_data(object=self.object)
+        return self.render_to_response(context)
+
+    def get_context_data(self, **kwargs):
+        from .qr import qr_svg
+
+        ctx = super().get_context_data(**kwargs)
+        ctx["qr_svg"] = mark_safe(qr_svg(self.object.token_code))
         return ctx
 
 

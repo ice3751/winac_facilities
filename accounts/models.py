@@ -12,7 +12,9 @@ class User(AbstractUser):
         RECEPTION = "reception", "پذیرش / نگهبانی"
         RESTAURANT = "restaurant", "مسئول رستوران"
         PROTOCOL = "protocol", "واحد تشریفات"
-        HOST = "host", "میزبان داخلی / درخواست‌دهنده"
+        HOST = "host", "مدیر واحد / میزبان"
+        OFFICE_MANAGER = "office_manager", "مدیر اداری"
+        SUPPLY = "supply", "واحد تأمین"
         REPORT_VIEWER = "report_viewer", "مدیر گزارش‌گیر"
 
     role = models.CharField(
@@ -21,6 +23,7 @@ class User(AbstractUser):
         choices=Roles.choices,
         default=Roles.HOST,
     )
+    org_unit = models.CharField("واحد سازمانی", max_length=120, blank=True)
     full_name_fa = models.CharField("نام کامل (فارسی)", max_length=150, blank=True)
 
     class Meta:
@@ -38,6 +41,12 @@ class User(AbstractUser):
     @property
     def is_admin_role(self):
         return self.is_superuser or self.role == self.Roles.ADMIN
+
+    @property
+    def has_full_app_access(self):
+        """دسترسی کامل به همهٔ منوها و ویرایش‌های برنامه (مثل ادمین)،
+        اما بدون پنل «مدیریت سیستم». شامل مدیر سیستم و مدیر اداری است."""
+        return self.is_admin_role or self.role == self.Roles.OFFICE_MANAGER
 
     def has_role(self, *roles):
         return self.is_admin_role or self.role in roles

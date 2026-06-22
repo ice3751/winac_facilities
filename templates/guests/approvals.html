@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}تأیید مهمان‌ها{% endblock %}
+{% block content %}
+<h4 class="page-title mb-4">تأیید مهمان‌ها (مدیر اداری)</h4>
+
+<div class="card"><div class="table-responsive">
+<table class="table table-hover align-middle mb-0">
+  <thead><tr><th>نام</th><th>شرکت</th><th>میزبان</th><th>محل استقرار</th><th>ثبت‌کننده</th><th>تاریخ مراجعه</th><th>نهار</th><th>پذیرایی</th><th>تصمیم</th></tr></thead>
+  <tbody>
+  {% for g in guests %}
+    <tr>
+      <td>{{ g.full_name }}</td>
+      <td>{{ g.company|default:"-" }}</td>
+      <td>{{ g.host_personnel.full_name|default:"-" }}</td>
+      <td>{{ g.stationing_location.name|default:"-" }}</td>
+      <td>{{ g.created_by.display_name|default:"-" }}</td>
+      <td>{{ g.visit_date }}</td>
+      <td>{% if g.needs_lunch %}✔{% else %}—{% endif %}</td>
+      <td>{% if g.needs_catering %}✔{% else %}—{% endif %}</td>
+      <td>
+        <form method="post" action="{% url 'guests:review' g.pk %}" class="d-flex gap-1 align-items-center">
+          {% csrf_token %}
+          <input type="text" name="review_note" class="form-control form-control-sm" placeholder="توضیح (اختیاری)" style="width:160px">
+          <button name="decision" value="approve" class="btn btn-sm btn-success">تأیید</button>
+          <button name="decision" value="reject" class="btn btn-sm btn-outline-danger">رد</button>
+          <a href="{% url 'guests:edit' g.pk %}" class="btn btn-sm btn-outline-primary">ویرایش</a>
+        </form>
+      </td>
+    </tr>
+  {% empty %}<tr><td colspan="9" class="text-center text-muted py-4">مهمانی در انتظار تأیید نیست</td></tr>{% endfor %}
+  </tbody>
+</table>
+</div></div>
+{% include "crud/_pagination.html" %}
+{% endblock %}

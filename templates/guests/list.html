@@ -22,7 +22,7 @@
 
 <div class="card"><div class="table-responsive">
 <table class="table table-hover mb-0">
-  <thead><tr><th>نام</th><th>شرکت</th><th>نوع</th><th>میزبان</th><th>تاریخ</th><th>نهار</th><th>پذیرایی</th><th>وضعیت</th><th></th></tr></thead>
+  <thead><tr><th>نام</th><th>شرکت</th><th>نوع</th><th>میزبان</th><th>محل استقرار</th><th>تاریخ</th><th>نهار</th><th>تأیید</th><th>عملیات</th></tr></thead>
   <tbody>
   {% for g in guests %}
     <tr>
@@ -30,11 +30,23 @@
       <td>{{ g.company|default:"-" }}</td>
       <td>{{ g.get_guest_type_display }}</td>
       <td>{{ g.host_personnel.full_name|default:"-" }}</td>
+      <td>
+        {{ g.stationing_location.name|default:"-" }}
+        {% if g.needs_catering %}<span class="badge bg-info" title="محل پذیرایی">پذیرایی</span>{% endif %}
+      </td>
       <td>{{ g.visit_date }}</td>
       <td>{% if g.needs_lunch %}✔{% else %}—{% endif %}</td>
-      <td>{% if g.needs_catering %}✔{% else %}—{% endif %}</td>
-      <td><span class="badge bg-secondary">{{ g.get_status_display }}</span></td>
-      <td><a href="{% url 'guests:edit' g.pk %}" class="btn btn-sm btn-outline-primary">ویرایش</a></td>
+      <td>
+        {% if g.approval_status == 'approved' %}<span class="badge bg-success">تأییدشده</span>
+        {% elif g.approval_status == 'rejected' %}<span class="badge bg-danger">ردشده</span>
+        {% else %}<span class="badge bg-warning text-dark">در انتظار تأیید</span>{% endif %}
+      </td>
+      <td>
+        <a href="{% url 'guests:edit' g.pk %}" class="btn btn-sm btn-outline-primary">ویرایش</a>
+        {% if g.approval_status == 'approved' %}
+          <a href="{% url 'guests:assignment_add' %}?guest={{ g.pk }}" class="btn btn-sm btn-outline-success">تخصیص کارت</a>
+        {% endif %}
+      </td>
     </tr>
   {% empty %}<tr><td colspan="9" class="text-center text-muted py-4">مهمانی یافت نشد</td></tr>{% endfor %}
   </tbody>

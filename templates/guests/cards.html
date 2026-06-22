@@ -3,7 +3,11 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h4 class="page-title mb-0">کارت‌های مهمان</h4>
-  <a href="{% url 'guests:card_add' %}" class="btn btn-winac btn-sm">+ کارت جدید</a>
+  <div class="d-flex gap-2">
+    <a href="{% url 'guests:assignments' %}" class="btn btn-outline-secondary btn-sm">لیست تخصیص‌ها</a>
+    <a href="{% url 'guests:assignment_add' %}" class="btn btn-outline-primary btn-sm">تخصیص کارت به مهمان</a>
+    <a href="{% url 'guests:card_add' %}" class="btn btn-winac btn-sm">+ کارت جدید</a>
+  </div>
 </div>
 <div class="card"><div class="table-responsive">
 <table class="table table-hover mb-0">

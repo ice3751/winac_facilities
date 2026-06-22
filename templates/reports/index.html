@@ -7,7 +7,11 @@
     <div class="col-md-4">
       <a href="{% url 'reports:detail' key %}" class="text-decoration-none">
         <div class="card stat-card h-100"><div class="card-body">
-          <h6 class="mb-0">📊 {{ title }}</h6>
+          <span class="stat-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </span>
+          <div><div class="fw-bold">{{ title }}</div>
+            <div class="stat-label">مشاهده و خروجی Excel</div></div>
         </div></div>
       </a>
     </div>

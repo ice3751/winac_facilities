@@ -10,6 +10,7 @@ rollback می‌شود؛ در غیر این صورت لاگ مغایرت از ب
 
 import secrets
 
+from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 
@@ -18,6 +19,38 @@ from .models import DuplicateAttempt, MealToken
 
 class MealTokenError(Exception):
     """خطای قابل‌نمایش به کاربر در فرآیند ژتون."""
+
+
+def lunch_window_open(now=None):
+    """آیا اکنون در بازهٔ مجاز صدور ژتون نهار هستیم؟ (تا ساعت تعیین‌شده، پیش‌فرض ۱۰ صبح)."""
+    if not getattr(settings, "MEAL_TOKEN_CUTOFF_ENABLED", True):
+        return True
+    now = now or timezone.localtime()
+    return now.hour < getattr(settings, "MEAL_TOKEN_CUTOFF_HOUR", 10)
+
+
+def lunch_cutoff_message():
+    hour = getattr(settings, "MEAL_TOKEN_CUTOFF_HOUR", 10)
+    return f"صدور ژتون نهار فقط تا ساعت {hour}:۰۰ صبح همان روز امکان‌پذیر است."
+
+
+def lunch_assignable_for_date(visit_date, now=None):
+    """آیا هنوز می‌توان برای مهمانی که در ``visit_date`` مراجعه می‌کند نهار ثبت کرد؟
+
+    مهلت، ساعت سقف (پیش‌فرض ۱۰ صبح) در «روز مراجعهٔ مهمان» است.
+    """
+    if not getattr(settings, "MEAL_TOKEN_CUTOFF_ENABLED", True):
+        return True
+    if visit_date is None:
+        return True
+    import datetime as _dt
+
+    now = now or timezone.localtime()
+    hour = getattr(settings, "MEAL_TOKEN_CUTOFF_HOUR", 10)
+    deadline = _dt.datetime.combine(visit_date, _dt.time(hour, 0))
+    if timezone.is_naive(deadline):
+        deadline = timezone.make_aware(deadline, timezone.get_current_timezone())
+    return now < deadline
 
 
 def generate_token_code():
@@ -129,4 +162,20 @@ def consume_token(token, *, user=None):
         token.consumed_at = timezone.now()
         token.consumed_by = user
         token.save(update_fields=["status", "consumed_at", "consumed_by", "updated_at"])
+    return token
+
+
+def mark_printed(token, *, user=None):
+    """چاپ ژتون = مصرف آن.
+
+    وقتی ژتون چاپ می‌شود (با کارت/اثرانگشت روی فیش‌پرینتر یا از صفحهٔ چاپ)، همان لحظه
+    «مصرف‌شده» در نظر گرفته می‌شود و نیازی به تأیید مسئول رستوران نیست. اگر ژتون از
+    قبل مصرف/لغو شده یا برای روز دیگری باشد، بدون خطا فقط نمایش داده می‌شود.
+    """
+    if token.status == MealToken.Status.ISSUED and token.date == timezone.localdate():
+        with transaction.atomic():
+            token.status = MealToken.Status.CONSUMED
+            token.consumed_at = timezone.now()
+            token.consumed_by = user
+            token.save(update_fields=["status", "consumed_at", "consumed_by", "updated_at"])
     return token

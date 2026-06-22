@@ -1,12 +1,24 @@
 from django.contrib import admin
 
-from .models import CateringItem, CateringRequest, CateringRequestItem
+from .models import (
+    CateringItem,
+    CateringLocation,
+    CateringRequest,
+    CateringRequestItem,
+)
 
 
 @admin.register(CateringItem)
 class CateringItemAdmin(admin.ModelAdmin):
     list_display = ("name", "unit", "is_active")
     list_filter = ("unit", "is_active")
+    search_fields = ("name",)
+
+
+@admin.register(CateringLocation)
+class CateringLocationAdmin(admin.ModelAdmin):
+    list_display = ("name", "capacity", "is_active")
+    list_filter = ("is_active",)
     search_fields = ("name",)
 
 
@@ -19,10 +31,23 @@ class CateringRequestItemInline(admin.TabularInline):
 @admin.register(CateringRequest)
 class CateringRequestAdmin(admin.ModelAdmin):
     list_display = (
-        "title", "host", "catering_date", "occasion", "headcount", "status",
+        "title", "host", "catering_date", "location", "start_time", "end_time",
+        "occasion", "headcount", "approval_status", "status",
     )
-    list_filter = ("status", "occasion", "catering_date")
-    search_fields = ("title", "location")
-    autocomplete_fields = ("host",)
+    list_filter = ("approval_status", "status", "occasion", "catering_date", "location")
+    search_fields = ("title",)
+    autocomplete_fields = ("host", "location", "approved_by")
+    readonly_fields = ("approved_by", "approved_at")
     date_hierarchy = "catering_date"
     inlines = [CateringRequestItemInline]
+
+
+@admin.register(CateringRequestItem)
+class CateringRequestItemAdmin(admin.ModelAdmin):
+    list_display = (
+        "item", "request", "quantity", "needs_purchase", "purchase_status",
+        "purchased_by", "purchased_at",
+    )
+    list_filter = ("needs_purchase", "purchase_status")
+    search_fields = ("item__name", "request__title")
+    autocomplete_fields = ("item", "request", "purchased_by")

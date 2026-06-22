@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="page-title mb-0">{{ page_title }}</h4>
+  {% if back_url %}<a href="{{ back_url }}" class="btn btn-sm btn-outline-secondary">بازگشت</a>{% endif %}
+</div>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+
+  <div class="card mb-3"><div class="card-body">
+    {% include "crud/_fields.html" %}
+  </div></div>
+
+  <div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>اقلام پذیرایی</span>
+      <button type="button" id="add-item" class="btn btn-sm btn-outline-primary">+ افزودن قلم</button>
+    </div>
+    <div class="card-body">
+      {{ formset.management_form }}
+      {% if formset.non_form_errors %}<div class="alert alert-danger">{{ formset.non_form_errors }}</div>{% endif %}
+      <div class="table-responsive">
+        <table class="table align-middle mb-2" id="items-table">
+          <thead><tr>
+            <th style="width:38%">قلم</th><th>مقدار</th><th class="text-center">نیاز به خرید</th><th>توضیحات</th><th></th>
+          </tr></thead>
+          <tbody id="items-body">
+          {% for f in formset %}
+            <tr class="item-row">
+              {{ f.id }}
+              <td>{{ f.item }}{% for e in f.item.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}</td>
+              <td>{{ f.quantity }}</td>
+              <td class="text-center">{{ f.needs_purchase }}</td>
+              <td>{{ f.description }}</td>
+              <td class="d-none">{{ f.DELETE }}</td>
+              <td><button type="button" class="btn btn-sm btn-outline-danger remove-item">حذف</button></td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="text-muted small mb-0">
+        اقلامی که «نیاز به خرید» را علامت بزنید، در پنل واحد تأمین برای تهیه نمایش داده می‌شوند.
+      </p>
+    </div>
+  </div>
+
+  <div>
+    <button type="submit" class="btn btn-winac">ذخیره</button>
+    {% if back_url %}<a href="{{ back_url }}" class="btn btn-light">انصراف</a>{% endif %}
+  </div>
+</form>
+
+<template id="empty-form">
+  <tr class="item-row">
+    {{ formset.empty_form.id }}
+    <td>{{ formset.empty_form.item }}</td>
+    <td>{{ formset.empty_form.quantity }}</td>
+    <td class="text-center">{{ formset.empty_form.needs_purchase }}</td>
+    <td>{{ formset.empty_form.description }}</td>
+    <td class="d-none">{{ formset.empty_form.DELETE }}</td>
+    <td><button type="button" class="btn btn-sm btn-outline-danger remove-item">حذف</button></td>
+  </tr>
+</template>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var body = document.getElementById('items-body');
+  var tmpl = document.getElementById('empty-form');
+  var total = document.getElementById('id_items-TOTAL_FORMS');
+
+  document.getElementById('add-item').addEventListener('click', function () {
+    var idx = parseInt(total.value, 10);
+    body.insertAdjacentHTML('beforeend', tmpl.innerHTML.replace(/__prefix__/g, idx));
+    total.value = idx + 1;
+  });
+
+  body.addEventListener('click', function (e) {
+    var btn = e.target.closest('.remove-item');
+    if (!btn) return;
+    var row = btn.closest('.item-row');
+    var del = row.querySelector('input[type=checkbox][name$="-DELETE"]');
+    if (del) del.checked = true;       // ردیف موجود: علامت حذف
+    row.style.display = 'none';
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 130" role="img" aria-label="winac ویناک">
+  <!-- نشان زاویه‌دار آبی روشن بالای لوگو -->
+  <g transform="translate(232,6) rotate(45)">
+    <rect x="0" y="0" width="34" height="34" rx="7" fill="none" stroke="#aedcf5" stroke-width="9"/>
+  </g>
+  <!-- واژه‌نشان: win ذغالی + ac آبی -->
+  <text x="8" y="86" font-family="Tahoma, Arial, sans-serif" font-size="76" font-weight="700" letter-spacing="-2">
+    <tspan fill="#2d2d2d">win</tspan><tspan fill="#0e9bd7">ac</tspan>
+  </text>
+  <!-- زیرنویس فارسی -->
+  <text x="332" y="120" text-anchor="end" font-family="Tahoma, Arial, sans-serif" font-size="30" font-weight="700" fill="#9a9a9a" direction="rtl">ویناک</text>
+</svg>

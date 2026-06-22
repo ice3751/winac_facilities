@@ -10,7 +10,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from accounts.models import User
-from catering.models import CateringItem
+from catering.models import CateringItem, CateringLocation
 from guests.models import Guest, GuestCard
 from people.models import Personnel
 
@@ -35,7 +35,9 @@ class Command(BaseCommand):
             "reception": (User.Roles.RECEPTION, "کاربر پذیرش"),
             "restaurant": (User.Roles.RESTAURANT, "مسئول رستوران"),
             "protocol": (User.Roles.PROTOCOL, "واحد تشریفات"),
-            "host": (User.Roles.HOST, "میزبان داخلی"),
+            "host": (User.Roles.HOST, "مدیر واحد / میزبان"),
+            "office": (User.Roles.OFFICE_MANAGER, "مدیر اداری"),
+            "supply": (User.Roles.SUPPLY, "واحد تأمین"),
             "reporter": (User.Roles.REPORT_VIEWER, "مدیر گزارش‌گیر"),
         }
         for username, (role, name) in role_users.items():
@@ -65,7 +67,7 @@ class Command(BaseCommand):
             Guest.objects.create(
                 first_name="رضا", last_name="احمدی", company="شرکت نمونه",
                 guest_type=Guest.GuestType.CUSTOMER, visit_date=timezone.localdate(),
-                needs_lunch=True,
+                needs_lunch=True, approval_status=Guest.ApprovalStatus.APPROVED,
             )
             self.stdout.write("  ۱ مهمان نمونه ساخته شد")
 
@@ -83,5 +85,12 @@ class Command(BaseCommand):
                                ("آب معدنی", CateringItem.Unit.PIECE), ("کیک", CateringItem.Unit.PIECE)]:
                 CateringItem.objects.create(name=name, unit=unit)
             self.stdout.write("  اقلام پذیرایی نمونه ساخته شد")
+
+        # محل‌های پذیرایی نمونه
+        if not CateringLocation.objects.exists():
+            for name, cap in [("سالن جلسات اصلی", 20), ("اتاق مهمان VIP", 6),
+                              ("سالن کنفرانس", 50), ("اتاق مصاحبه", 4)]:
+                CateringLocation.objects.create(name=name, capacity=cap)
+            self.stdout.write("  محل‌های پذیرایی نمونه ساخته شد")
 
         self.stdout.write(self.style.SUCCESS("داده‌های نمونه آماده است."))

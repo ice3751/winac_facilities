@@ -81,3 +81,9 @@ class AttendanceEvent(TimeStampedModel):
 
     def __str__(self):
         return f"{self.get_event_type_display()} - {self.card_or_fingerprint} @ {self.occurred_at}"
+
+    @property
+    def device_id_label(self):
+        if self.device:
+            return self.device.device_id
+        return self.device_type or "نامشخص"

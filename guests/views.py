@@ -30,6 +30,10 @@ class GuestListView(RoleRequiredMixin, ListView):
 
     def get_queryset(self):
         qs = super().get_queryset().select_related("host_personnel")
+        # مدیر واحد (host) فقط مهمان‌های ثبت‌شدهٔ خودش را می‌بیند؛
+        # مدیر اداری/سیستم و پذیرش همهٔ مهمان‌ها را می‌بینند.
+        if self.request.user.role == R.HOST and not self.request.user.has_full_app_access:
+            qs = qs.filter(created_by=self.request.user)
         q = self.request.GET.get("q", "").strip()
         status = self.request.GET.get("status", "").strip()
         if q:
@@ -85,6 +89,13 @@ class GuestUpdateView(RoleRequiredMixin, UpdateView):
     template_name = "crud/form.html"
     # مدیر اداری هم می‌تواند مهمان (مثلاً نیاز به نهار/پذیرایی) را پیش از تأیید اصلاح کند
     allowed_roles = (R.RECEPTION, R.HOST, R.OFFICE_MANAGER)
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # مدیر واحد فقط مهمان‌های خودش را می‌تواند ویرایش کند
+        if self.request.user.role == R.HOST and not self.request.user.has_full_app_access:
+            qs = qs.filter(created_by=self.request.user)
+        return qs
 
     def form_valid(self, form):
         messages.success(self.request, "اطلاعات مهمان به‌روزرسانی شد.")

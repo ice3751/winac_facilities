@@ -188,6 +188,38 @@ class GuestApprovalTests(TestCase):
         resp = self.client.get(reverse("guests:approvals"))
         self.assertEqual(resp.status_code, 403)
 
+    def test_host_sees_only_own_guests(self):
+        other = User.objects.create_user(
+            username="host_other", password="pass12345", role=User.Roles.HOST
+        )
+        mine = Guest.objects.create(
+            first_name="مال", last_name="من", visit_date=timezone.localdate(),
+            created_by=self.host,
+        )
+        theirs = Guest.objects.create(
+            first_name="مال", last_name="دیگری", visit_date=timezone.localdate(),
+            created_by=other,
+        )
+        self.client.force_login(self.host)
+        resp = self.client.get(reverse("guests:list"))
+        self.assertContains(resp, "من")
+        self.assertNotContains(resp, "دیگری")
+        # ویرایش مهمان دیگری برای میزبان ممنوع است (404 از کوئری‌ست)
+        edit = self.client.get(reverse("guests:edit", args=[theirs.pk]))
+        self.assertEqual(edit.status_code, 404)
+
+    def test_office_manager_sees_all_guests(self):
+        other = User.objects.create_user(
+            username="host_x", password="pass12345", role=User.Roles.HOST
+        )
+        Guest.objects.create(
+            first_name="مهمان", last_name="دیگری", visit_date=timezone.localdate(),
+            created_by=other,
+        )
+        self.client.force_login(self.office)
+        resp = self.client.get(reverse("guests:list"))
+        self.assertContains(resp, "دیگری")
+
     def test_office_manager_has_full_app_access(self):
         # مدیر اداری باید به همهٔ منوها دسترسی داشته باشد (به‌جز پنل مدیریت سیستم)
         self.client.force_login(self.office)

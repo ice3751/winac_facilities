@@ -47,6 +47,14 @@ class Guest(TimeStampedModel):
     expected_exit_time = models.TimeField("ساعت خروج تقریبی", null=True, blank=True)
     needs_lunch = models.BooleanField("نیاز به نهار", default=False)
     needs_catering = models.BooleanField("نیاز به پذیرایی ویژه", default=False)
+    stationing_location = models.ForeignKey(
+        "catering.CateringLocation",
+        verbose_name="محل استقرار",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="stationed_guests",
+    )
     status = models.CharField(
         "وضعیت حضور", max_length=15, choices=Status.choices, default=Status.REGISTERED
     )
@@ -74,6 +82,11 @@ class Guest(TimeStampedModel):
     @property
     def full_name(self):
         return f"{self.first_name} {self.last_name}".strip()
+
+    @property
+    def catering_location(self):
+        """اگر مهمان نیاز به پذیرایی داشته باشد، محل پذیرایی او همان محل استقرار است."""
+        return self.stationing_location if self.needs_catering else None
 
 
 class GuestCard(TimeStampedModel):

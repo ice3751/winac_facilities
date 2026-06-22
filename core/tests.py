@@ -267,6 +267,48 @@ class SupplyPanelTests(TestCase):
         self.assertEqual(self.cri.purchased_by, self.supply)
 
 
+class GuestStationingLocationTests(TestCase):
+    def setUp(self):
+        from catering.models import CateringLocation
+        self.recep = User.objects.create_user(
+            username="recep_t", password="pass12345", role=User.Roles.RECEPTION
+        )
+        self.loc = CateringLocation.objects.create(name="اتاق جلسه ۱")
+        self.client.force_login(self.recep)
+
+    def _payload(self, **over):
+        data = {
+            "first_name": "مهمان", "last_name": "تست", "company": "",
+            "guest_type": Guest.GuestType.VISITOR, "phone": "",
+            "visit_date": timezone.localdate().isoformat(),
+            "status": Guest.Status.REGISTERED,
+        }
+        data.update(over)
+        return data
+
+    def test_catering_requires_stationing_location(self):
+        # نیاز به پذیرایی بدون محل استقرار → رد شود
+        resp = self.client.post(reverse("guests:add"), self._payload(needs_catering="on"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(Guest.objects.filter(first_name="مهمان").exists())
+
+    def test_catering_with_location_ok_and_property(self):
+        resp = self.client.post(reverse("guests:add"), self._payload(
+            needs_catering="on", stationing_location=self.loc.pk))
+        self.assertEqual(resp.status_code, 302)
+        guest = Guest.objects.get(first_name="مهمان")
+        self.assertEqual(guest.stationing_location, self.loc)
+        # محل پذیرایی مهمان همان محل استقرار اوست
+        self.assertEqual(guest.catering_location, self.loc)
+
+    def test_no_catering_means_no_catering_location(self):
+        resp = self.client.post(reverse("guests:add"), self._payload(
+            stationing_location=self.loc.pk))
+        self.assertEqual(resp.status_code, 302)
+        guest = Guest.objects.get(first_name="مهمان")
+        self.assertIsNone(guest.catering_location)
+
+
 class ChartHelperTests(TestCase):
     def test_bar_chart_renders_svg(self):
         from core.charts import bar_chart

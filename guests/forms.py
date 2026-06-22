@@ -1,5 +1,6 @@
 from django import forms
 
+from catering.models import CateringLocation
 from core.forms import BootstrapFormMixin
 
 from .models import CardAssignment, Guest, GuestCard
@@ -11,9 +12,26 @@ class GuestForm(BootstrapFormMixin, forms.ModelForm):
         fields = [
             "first_name", "last_name", "company", "guest_type", "phone",
             "host_personnel", "visit_date", "expected_entry_time", "expected_exit_time",
-            "needs_lunch", "needs_catering", "status", "description",
+            "needs_lunch", "needs_catering", "stationing_location", "status", "description",
         ]
         widgets = {"description": forms.Textarea(attrs={"rows": 2})}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["stationing_location"].queryset = CateringLocation.objects.filter(
+            is_active=True
+        )
+
+    def clean(self):
+        cleaned = super().clean()
+        # اگر مهمان نیاز به پذیرایی دارد، محل استقرار (که محل پذیرایی هم می‌شود) الزامی است
+        if cleaned.get("needs_catering") and not cleaned.get("stationing_location"):
+            self.add_error(
+                "stationing_location",
+                "برای مهمانی که نیاز به پذیرایی دارد، انتخاب محل استقرار الزامی است "
+                "(همین محل، محل پذیرایی او خواهد بود).",
+            )
+        return cleaned
 
 
 class GuestCardForm(BootstrapFormMixin, forms.ModelForm):

@@ -5,16 +5,18 @@
 
 <div class="card"><div class="table-responsive">
 <table class="table table-hover align-middle mb-0">
-  <thead><tr><th>نام</th><th>شرکت</th><th>میزبان</th><th>ثبت‌کننده</th><th>تاریخ مراجعه</th><th>نهار</th><th>تصمیم</th></tr></thead>
+  <thead><tr><th>نام</th><th>شرکت</th><th>میزبان</th><th>محل استقرار</th><th>ثبت‌کننده</th><th>تاریخ مراجعه</th><th>نهار</th><th>پذیرایی</th><th>تصمیم</th></tr></thead>
   <tbody>
   {% for g in guests %}
     <tr>
       <td>{{ g.full_name }}</td>
       <td>{{ g.company|default:"-" }}</td>
       <td>{{ g.host_personnel.full_name|default:"-" }}</td>
+      <td>{{ g.stationing_location.name|default:"-" }}</td>
       <td>{{ g.created_by.display_name|default:"-" }}</td>
       <td>{{ g.visit_date }}</td>
       <td>{% if g.needs_lunch %}✔{% else %}—{% endif %}</td>
+      <td>{% if g.needs_catering %}✔{% else %}—{% endif %}</td>
       <td>
         <form method="post" action="{% url 'guests:review' g.pk %}" class="d-flex gap-1 align-items-center">
           {% csrf_token %}
@@ -24,7 +26,7 @@
         </form>
       </td>
     </tr>
-  {% empty %}<tr><td colspan="7" class="text-center text-muted py-4">مهمانی در انتظار تأیید نیست</td></tr>{% endfor %}
+  {% empty %}<tr><td colspan="9" class="text-center text-muted py-4">مهمانی در انتظار تأیید نیست</td></tr>{% endfor %}
   </tbody>
 </table>
 </div></div>

@@ -6,13 +6,13 @@ from .models import CardAssignment, Guest, GuestCard
 @admin.register(Guest)
 class GuestAdmin(admin.ModelAdmin):
     list_display = (
-        "full_name", "company", "guest_type", "host_personnel",
-        "visit_date", "needs_lunch", "approval_status", "status",
+        "full_name", "company", "guest_type", "host_personnel", "stationing_location",
+        "visit_date", "needs_lunch", "needs_catering", "approval_status", "status",
     )
     list_filter = ("approval_status", "guest_type", "status", "needs_lunch",
-                   "needs_catering", "visit_date")
+                   "needs_catering", "visit_date", "stationing_location")
     search_fields = ("first_name", "last_name", "company", "phone")
-    autocomplete_fields = ("host_personnel", "approved_by")
+    autocomplete_fields = ("host_personnel", "approved_by", "stationing_location")
     readonly_fields = ("approved_by", "approved_at")
     date_hierarchy = "visit_date"
 

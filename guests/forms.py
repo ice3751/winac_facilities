@@ -2,6 +2,7 @@ from django import forms
 
 from catering.models import CateringLocation
 from core.forms import BootstrapFormMixin
+from meals.services import lunch_assignable_for_date
 
 from .models import CardAssignment, Guest, GuestCard
 
@@ -31,6 +32,16 @@ class GuestForm(BootstrapFormMixin, forms.ModelForm):
                 "برای مهمانی که نیاز به پذیرایی دارد، انتخاب محل استقرار الزامی است "
                 "(همین محل، محل پذیرایی او خواهد بود).",
             )
+        # تخصیص نهار بعد از ساعت ۱۰ صبحِ روز مراجعهٔ مهمان مجاز نیست
+        # (اگر از قبل نهار داشته، ویرایش سایر فیلدها مانعی ندارد)
+        already_lunch = bool(self.instance.pk and self.instance.needs_lunch)
+        if cleaned.get("needs_lunch") and not already_lunch:
+            if not lunch_assignable_for_date(cleaned.get("visit_date")):
+                self.add_error(
+                    "needs_lunch",
+                    "امکان ثبت درخواست نهار برای نهار بعد از ساعت 10 صبح روز مراجعه ی "
+                    "مهمان قابل انجام نمیباشد",
+                )
         return cleaned
 
 

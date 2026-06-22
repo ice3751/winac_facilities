@@ -34,6 +34,25 @@ def lunch_cutoff_message():
     return f"صدور ژتون نهار فقط تا ساعت {hour}:۰۰ صبح همان روز امکان‌پذیر است."
 
 
+def lunch_assignable_for_date(visit_date, now=None):
+    """آیا هنوز می‌توان برای مهمانی که در ``visit_date`` مراجعه می‌کند نهار ثبت کرد؟
+
+    مهلت، ساعت سقف (پیش‌فرض ۱۰ صبح) در «روز مراجعهٔ مهمان» است.
+    """
+    if not getattr(settings, "MEAL_TOKEN_CUTOFF_ENABLED", True):
+        return True
+    if visit_date is None:
+        return True
+    import datetime as _dt
+
+    now = now or timezone.localtime()
+    hour = getattr(settings, "MEAL_TOKEN_CUTOFF_HOUR", 10)
+    deadline = _dt.datetime.combine(visit_date, _dt.time(hour, 0))
+    if timezone.is_naive(deadline):
+        deadline = timezone.make_aware(deadline, timezone.get_current_timezone())
+    return now < deadline
+
+
 def generate_token_code():
     """یک کد ژتون یکتای کوتاه و خوانا تولید می‌کند (برای چاپ/QR آینده)."""
     today = timezone.localdate()

@@ -149,6 +149,7 @@ class AttendanceIntegrationTests(TestCase):
         self.assertEqual(MealToken.objects.filter(personnel=self.person).count(), 1)
 
 
+@override_settings(MEAL_TOKEN_CUTOFF_ENABLED=False)
 class GuestApprovalTests(TestCase):
     def setUp(self):
         self.host = User.objects.create_user(
@@ -249,6 +250,42 @@ class GuestApprovalTests(TestCase):
         self.assertEqual(resp.status_code, 302)
         guest.refresh_from_db()
         self.assertFalse(guest.needs_lunch)
+
+
+class GuestLunchCutoffTests(TestCase):
+    def test_assignable_helper_respects_visit_day_deadline(self):
+        import datetime
+        from django.utils import timezone as tz
+        from meals.services import lunch_assignable_for_date
+
+        tzinfo = tz.get_current_timezone()
+        visit = datetime.date(2026, 6, 22)
+        before = datetime.datetime(2026, 6, 22, 9, 0, tzinfo=tzinfo)
+        after = datetime.datetime(2026, 6, 22, 10, 30, tzinfo=tzinfo)
+        next_day = datetime.datetime(2026, 6, 23, 8, 0, tzinfo=tzinfo)
+        with override_settings(MEAL_TOKEN_CUTOFF_ENABLED=True, MEAL_TOKEN_CUTOFF_HOUR=10):
+            self.assertTrue(lunch_assignable_for_date(visit, before))
+            self.assertFalse(lunch_assignable_for_date(visit, after))
+            self.assertFalse(lunch_assignable_for_date(visit, next_day))
+
+    @override_settings(MEAL_TOKEN_CUTOFF_ENABLED=True, MEAL_TOKEN_CUTOFF_HOUR=10)
+    def test_host_cannot_assign_lunch_after_deadline(self):
+        import datetime
+        host = User.objects.create_user(
+            username="host_lunch", password="pass12345", role=User.Roles.HOST
+        )
+        # روز مراجعه در گذشته → مهلت ساعت ۱۰ آن روز گذشته است
+        past = timezone.localdate() - datetime.timedelta(days=1)
+        self.client.force_login(host)
+        resp = self.client.post(reverse("guests:add"), {
+            "first_name": "نهار", "last_name": "دیر", "company": "",
+            "guest_type": Guest.GuestType.VISITOR, "phone": "",
+            "visit_date": past.isoformat(),
+            "needs_lunch": "on", "status": Guest.Status.REGISTERED,
+        })
+        self.assertEqual(resp.status_code, 200)  # فرم با خطا برمی‌گردد
+        self.assertContains(resp, "بعد از ساعت 10 صبح روز مراجعه")
+        self.assertFalse(Guest.objects.filter(first_name="نهار").exists())
 
 
 class MealCutoffTests(TestCase):

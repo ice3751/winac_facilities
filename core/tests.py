@@ -288,6 +288,68 @@ class GuestLunchCutoffTests(TestCase):
         self.assertFalse(Guest.objects.filter(first_name="نهار").exists())
 
 
+@override_settings(
+    MEAL_TOKEN_CUTOFF_ENABLED=False,
+    NOTIFY_EMAIL_ENABLED=True,
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+)
+class EmailNotificationTests(TestCase):
+    def setUp(self):
+        from django.core import mail
+        mail.outbox = []
+        self.office = User.objects.create_user(
+            username="office_mail", password="pass12345",
+            role=User.Roles.OFFICE_MANAGER, email="office@winac.local",
+        )
+        self.host = User.objects.create_user(
+            username="host_mail", password="pass12345",
+            role=User.Roles.HOST, email="host@winac.local",
+        )
+
+    def test_office_emailed_on_new_pending_guest(self):
+        from django.core import mail
+        self.client.force_login(self.host)
+        resp = self.client.post(reverse("guests:add"), {
+            "first_name": "ایمیل", "last_name": "مهمان", "company": "",
+            "guest_type": Guest.GuestType.VISITOR, "phone": "",
+            "visit_date": timezone.localdate().isoformat(),
+            "status": Guest.Status.REGISTERED,
+        })
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("office@winac.local", mail.outbox[0].to)
+        self.assertIn("در انتظار تأیید", mail.outbox[0].subject)
+
+    def test_host_emailed_on_guest_decision(self):
+        from django.core import mail
+        guest = Guest.objects.create(
+            first_name="ایمیل", last_name="نتیجه", visit_date=timezone.localdate(),
+            created_by=self.host, approval_status=Guest.ApprovalStatus.PENDING,
+        )
+        mail.outbox = []
+        self.client.force_login(self.office)
+        self.client.post(reverse("guests:review", args=[guest.pk]),
+                         {"decision": "approve"})
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("host@winac.local", mail.outbox[0].to)
+        self.assertIn("تأیید", mail.outbox[0].subject)
+
+    def test_office_emailed_on_new_pending_catering(self):
+        from django.core import mail
+        from catering.models import CateringLocation
+        CateringLocation.objects.create(name="سالن ایمیل")
+        self.client.force_login(self.host)
+        resp = self.client.post(reverse("catering:add"), {
+            "title": "جلسهٔ ایمیل", "catering_date": timezone.localdate().isoformat(),
+            "occasion": "meeting", "headcount": 3, "status": "registered",
+            "items-TOTAL_FORMS": "0", "items-INITIAL_FORMS": "0",
+            "items-MIN_NUM_FORMS": "0", "items-MAX_NUM_FORMS": "1000",
+        })
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("office@winac.local", mail.outbox[0].to)
+
+
 class MealCutoffTests(TestCase):
     def test_window_open_before_and_after_cutoff(self):
         import datetime

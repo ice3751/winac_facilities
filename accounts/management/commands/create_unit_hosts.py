@@ -38,6 +38,7 @@ class Command(BaseCommand):
                     "role": User.Roles.HOST,
                     "org_unit": unit,
                     "full_name_fa": f"میزبان واحد {unit}",
+                    "email": f"{username}@winac.local",
                     "is_staff": False,
                     "is_active": True,
                 },
@@ -48,10 +49,16 @@ class Command(BaseCommand):
                 created += 1
                 self.stdout.write(f"  ساخته شد: {username}  →  {unit}")
             else:
-                # واحد را در صورت خالی‌بودن تکمیل کن (برای کاربرهای قدیمی)
+                # واحد/ایمیل را در صورت خالی‌بودن تکمیل کن (برای کاربرهای قدیمی)
+                changed = []
                 if not user.org_unit:
                     user.org_unit = unit
-                    user.save(update_fields=["org_unit"])
+                    changed.append("org_unit")
+                if not user.email:
+                    user.email = f"{username}@winac.local"
+                    changed.append("email")
+                if changed:
+                    user.save(update_fields=changed)
                 self.stdout.write(f"  از قبل موجود: {username}  ({unit})")
 
         self.stdout.write(self.style.SUCCESS(

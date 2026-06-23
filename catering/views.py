@@ -7,6 +7,10 @@ from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
 from accounts.models import User
 from core.mixins import RoleRequiredMixin
+from core.notifications import (
+    notify_host_catering_decision,
+    notify_office_new_catering,
+)
 
 from django.db import transaction
 
@@ -136,6 +140,9 @@ class _CateringRequestFormMixin:
             it.save()
         for obj in formset.deleted_objects:
             obj.delete()
+        # اطلاع‌رسانی به مدیر اداری برای درخواست جدیدِ در انتظار تأیید
+        if is_new and self.object.approval_status == CateringRequest.ApprovalStatus.PENDING:
+            notify_office_new_catering(self.object)
         return self.object
 
     def _handle_post(self, request):
@@ -388,4 +395,6 @@ class CateringReviewView(RoleRequiredMixin, View):
         req.save(update_fields=[
             "approval_status", "approved_by", "approved_at", "review_note", "updated_at",
         ])
+        # اطلاع‌رسانی نتیجه به ثبت‌کنندهٔ درخواست
+        notify_host_catering_decision(req)
         return redirect("catering:approvals")

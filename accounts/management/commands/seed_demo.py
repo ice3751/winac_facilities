@@ -43,12 +43,17 @@ class Command(BaseCommand):
         for username, (role, name) in role_users.items():
             user, created = User.objects.get_or_create(
                 username=username,
-                defaults={"role": role, "full_name_fa": name, "is_staff": False},
+                defaults={"role": role, "full_name_fa": name, "is_staff": False,
+                          "email": f"{username}@winac.local"},
             )
             if created:
                 user.set_password("test12345")
                 user.save()
                 self.stdout.write(f"  کاربر {username} ساخته شد (رمز: test12345)")
+            elif not user.email:
+                # تکمیل ایمیل برای کاربرهای قدیمیِ بدون ایمیل
+                user.email = f"{username}@winac.local"
+                user.save(update_fields=["email"])
 
         # پرسنل نمونه
         if not Personnel.objects.exists():

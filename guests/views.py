@@ -9,6 +9,7 @@ from django.views.generic import CreateView, ListView, UpdateView
 
 from accounts.models import User
 from core.mixins import RoleRequiredMixin
+from core.notifications import notify_host_guest_decision, notify_office_new_guest
 
 from .forms import CardAssignmentForm, GuestCardForm, GuestForm
 from .models import CardAssignment, Guest, GuestCard
@@ -74,7 +75,11 @@ class GuestCreateView(RoleRequiredMixin, CreateView):
             messages.success(
                 self.request, "مهمان ثبت شد و برای تأیید به مدیر اداری ارسال گردید."
             )
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        # اطلاع‌رسانی ایمیلی به مدیر اداری برای مهمانِ در انتظار تأیید
+        if self.object.approval_status == Guest.ApprovalStatus.PENDING:
+            notify_office_new_guest(self.object)
+        return response
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -159,6 +164,8 @@ class GuestReviewView(RoleRequiredMixin, View):
         guest.save(update_fields=[
             "approval_status", "approved_by", "approved_at", "review_note", "updated_at",
         ])
+        # اطلاع‌رسانی نتیجه به میزبانِ ثبت‌کننده
+        notify_host_guest_decision(guest)
         return redirect("guests:approvals")
 
 

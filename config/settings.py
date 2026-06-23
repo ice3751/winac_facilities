@@ -184,6 +184,23 @@ MEAL_TOKEN_CUTOFF_ENABLED = env_bool("MEAL_TOKEN_CUTOFF_ENABLED", True)
 MEAL_TOKEN_CUTOFF_HOUR = int(os.getenv("MEAL_TOKEN_CUTOFF_HOUR", "10"))
 
 # --------------------------------------------------------------------------- #
+# ایمیل (اطلاع‌رسانی به مدیر اداری و میزبان‌ها)
+# --------------------------------------------------------------------------- #
+# در توسعه پیش‌فرض console است (ایمیل در ترمینال چاپ می‌شود)؛ در Production مقدار
+# EMAIL_BACKEND را به SMTP تغییر دهید.
+EMAIL_BACKEND = os.getenv(
+    "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
+)
+EMAIL_HOST = os.getenv("EMAIL_HOST", "")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "winac-noreply@example.org")
+# فعال/غیرفعال‌کردن کلی اطلاع‌رسانی ایمیلی
+NOTIFY_EMAIL_ENABLED = env_bool("NOTIFY_EMAIL_ENABLED", True)
+
+# --------------------------------------------------------------------------- #
 # امنیت Production (وقتی DEBUG=False فعال می‌شود)
 # --------------------------------------------------------------------------- #
 if not DEBUG:

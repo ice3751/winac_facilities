@@ -110,15 +110,24 @@ if DB_ENGINE == "postgres":
         }
     }
 elif DB_ENGINE == "mssql":
+    # SQL Server از طریق mssql-django + pyodbc
+    _mssql_options = {
+        "driver": os.getenv("DB_DRIVER", "ODBC Driver 17 for SQL Server"),
+    }
+    # برای ODBC Driver 18 معمولاً لازم است: TrustServerCertificate=yes
+    _extra = os.getenv("DB_EXTRA_PARAMS", "")
+    if _extra:
+        _mssql_options["extra_params"] = _extra
     DATABASES = {
         "default": {
             "ENGINE": "mssql",
             "NAME": os.getenv("DB_NAME", "winac"),
+            # اگر USER/PASSWORD خالی بماند، احراز هویت ویندوزی (Trusted Connection) استفاده می‌شود
             "USER": os.getenv("DB_USER", ""),
             "PASSWORD": os.getenv("DB_PASSWORD", ""),
             "HOST": os.getenv("DB_HOST", "127.0.0.1"),
             "PORT": os.getenv("DB_PORT", "1433"),
-            "OPTIONS": {"driver": "ODBC Driver 17 for SQL Server"},
+            "OPTIONS": _mssql_options,
         }
     }
 else:

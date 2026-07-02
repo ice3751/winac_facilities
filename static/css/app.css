@@ -241,21 +241,41 @@ a:hover { color: var(--blue-600); }
 .login-hero img { max-width: 190px; }
 
 /* ===================== تقویم شمسی ===================== */
-.jdp-display { direction: ltr; text-align: center; }
-.jdp-pop { z-index: 1080; background: #fff; border: 1px solid var(--border); border-radius: 14px;
-  box-shadow: var(--shadow-lg); padding: 12px; width: 264px; }
+.jdp-display {
+  direction: ltr; text-align: center; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230b83b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='3'/%3E%3Cline x1='16' y1='2' x2='16' y2='6'/%3E%3Cline x1='8' y1='2' x2='8' y2='6'/%3E%3Cline x1='3' y1='10' x2='21' y2='10'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: left .65rem center; background-size: 18px;
+  padding-left: 2.1rem !important;
+}
+.jdp-pop {
+  z-index: 1080; background: #fff; border: 1px solid var(--border); border-radius: 16px;
+  box-shadow: var(--shadow-lg); padding: 14px; width: 272px;
+  animation: jdp-in .14s ease-out;
+}
+@keyframes jdp-in {
+  from { opacity: 0; transform: translateY(-6px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
 .jdp-head { display: flex; justify-content: space-between; align-items: center;
-  font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+  font-weight: 700; color: var(--ink); margin-bottom: 10px; }
 .jdp-nav { border: none; background: var(--blue-50); color: var(--blue-700);
-  width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 16px; }
+  width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 16px;
+  transition: background .12s ease; }
 .jdp-nav:hover { background: var(--blue-100); }
-.jdp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
-.jdp-w { color: #93a3b1; font-size: 12px; padding: 4px 0; }
-.jdp-day { padding: 7px 0; border-radius: 9px; cursor: pointer; font-size: 13px; transition: background .12s ease; }
+.jdp-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; text-align: center; }
+.jdp-w { color: #93a3b1; font-size: 12px; font-weight: 600; padding: 4px 0; }
+.jdp-w.jdp-fri { color: var(--danger, #d9534f); }
+.jdp-day { padding: 7px 0; border-radius: 9px; cursor: pointer; font-size: 13px;
+  transition: background .12s ease, color .12s ease; }
 .jdp-day:hover { background: var(--blue-50); }
-.jdp-sel { background: var(--blue); color: #fff; }
-.jdp-foot { display: flex; justify-content: space-between; margin-top: 8px; }
-.jdp-foot button { border: none; background: none; color: var(--blue-700); cursor: pointer; font-size: 12px; }
+.jdp-day.jdp-fri { color: var(--danger, #d9534f); }
+.jdp-day.jdp-today-cell { box-shadow: inset 0 0 0 1.5px var(--blue); font-weight: 700; }
+.jdp-sel, .jdp-day.jdp-sel.jdp-fri { background: var(--blue); color: #fff; box-shadow: none; }
+.jdp-foot { display: flex; justify-content: space-between; margin-top: 10px;
+  border-top: 1px solid var(--border); padding-top: 8px; }
+.jdp-foot button { border: none; background: none; color: var(--blue-700); cursor: pointer;
+  font-size: 12px; font-weight: 600; border-radius: 6px; padding: 4px 8px; transition: background .12s ease; }
+.jdp-foot button:hover { background: var(--blue-50); }
 
 /* ===================== نمودار SVG ===================== */
 .svg-chart { width: 100%; height: auto; }

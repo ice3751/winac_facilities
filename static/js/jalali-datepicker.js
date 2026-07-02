@@ -113,17 +113,25 @@
       var startDay = new Date(p.gy, p.gm - 1, p.gd).getDay(); // 0=Sun
       var col = (startDay + 1) % 7; // 0=Sat
       var len = jMonthLen(view.jy, view.jm);
+      var now = new Date();
+      var todayJ = toJalaali(now.getFullYear(), now.getMonth() + 1, now.getDate());
 
       var html = '<div class="jdp-head">' +
         '<button type="button" class="jdp-nav" data-act="next">‹</button>' +
         '<span>' + MONTHS[view.jm - 1] + ' ' + view.jy + '</span>' +
         '<button type="button" class="jdp-nav" data-act="prev">›</button></div>';
       html += '<div class="jdp-grid">';
-      WEEK.forEach(function (w) { html += '<div class="jdp-w">' + w + '</div>'; });
+      WEEK.forEach(function (w, wi) {
+        html += '<div class="jdp-w' + (wi === 6 ? ' jdp-fri' : '') + '">' + w + '</div>';
+      });
       for (var i = 0; i < col; i++) html += '<div></div>';
       for (var d = 1; d <= len; d++) {
+        var weekday = (col + d - 1) % 7;
         var sel = selected && selected.jy === view.jy && selected.jm === view.jm && selected.jd === d;
-        html += '<div class="jdp-day' + (sel ? ' jdp-sel' : '') + '" data-d="' + d + '">' + d + '</div>';
+        var isToday = todayJ.jy === view.jy && todayJ.jm === view.jm && todayJ.jd === d;
+        var cls = 'jdp-day' + (weekday === 6 ? ' jdp-fri' : '') +
+          (isToday ? ' jdp-today-cell' : '') + (sel ? ' jdp-sel' : '');
+        html += '<div class="' + cls + '" data-d="' + d + '">' + d + '</div>';
       }
       html += '</div>';
       html += '<div class="jdp-foot"><button type="button" class="jdp-today">امروز</button>' +

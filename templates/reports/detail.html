@@ -6,20 +6,22 @@
   <a href="{% url 'reports:index' %}" class="btn btn-outline-secondary btn-sm">بازگشت</a>
 </div>
 
-<form class="row g-2 mb-3 align-items-end" method="get">
+<div class="card mb-3"><div class="card-body">
+<form class="row g-3 align-items-end" method="get">
   <div class="col-md-3">
     <label class="form-label small">از تاریخ</label>
-    <input type="date" name="start" value="{{ start }}" class="form-control">
+    <input type="text" name="start" value="{{ start }}" class="form-control jalali-date" autocomplete="off">
   </div>
   <div class="col-md-3">
     <label class="form-label small">تا تاریخ</label>
-    <input type="date" name="end" value="{{ end }}" class="form-control">
+    <input type="text" name="end" value="{{ end }}" class="form-control jalali-date" autocomplete="off">
   </div>
   <div class="col-md-2"><button class="btn btn-winac w-100">اعمال فیلتر</button></div>
   <div class="col-md-2">
     <a class="btn btn-success w-100" href="?start={{ start }}&end={{ end }}&export=excel">خروجی Excel</a>
   </div>
 </form>
+</div></div>
 
 {% if chart %}
 <div class="card mb-3"><div class="card-body">{{ chart }}</div></div>

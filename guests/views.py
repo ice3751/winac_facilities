@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Q
@@ -36,6 +38,7 @@ class GuestListView(RoleRequiredMixin, ListView):
             qs = qs.filter(created_by=self.request.user)
         q = self.request.GET.get("q", "").strip()
         status = self.request.GET.get("status", "").strip()
+        visit_date = self.request.GET.get("visit_date", "").strip()
         if q:
             qs = qs.filter(
                 Q(first_name__icontains=q) | Q(last_name__icontains=q)
@@ -43,6 +46,11 @@ class GuestListView(RoleRequiredMixin, ListView):
             )
         if status:
             qs = qs.filter(status=status)
+        if visit_date:
+            try:
+                qs = qs.filter(visit_date=datetime.date.fromisoformat(visit_date))
+            except ValueError:
+                pass
         return qs
 
     def get_context_data(self, **kwargs):

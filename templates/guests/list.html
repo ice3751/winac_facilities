@@ -10,14 +10,20 @@
 </div>
 
 <form class="row g-2 mb-3" method="get">
-  <div class="col-md-5"><input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="جستجو: نام، شرکت، تلفن"></div>
-  <div class="col-md-3">
+  <div class="col-md-4"><input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="جستجو: نام، شرکت، تلفن"></div>
+  <div class="col-md-2">
     <select name="status" class="form-select">
       <option value="">همه وضعیت‌ها</option>
       {% for val,label in status_choices %}<option value="{{ val }}" {% if request.GET.status == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
     </select>
   </div>
+  <div class="col-md-3">
+    <input type="text" name="visit_date" value="{{ request.GET.visit_date }}" class="form-control jalali-date" autocomplete="off" placeholder="تاریخ مراجعه">
+  </div>
   <div class="col-md-2"><button class="btn btn-outline-secondary w-100">فیلتر</button></div>
+  {% if request.GET.q or request.GET.status or request.GET.visit_date %}
+  <div class="col-md-1"><a href="{% url 'guests:list' %}" class="btn btn-outline-danger w-100" title="پاک کردن فیلتر">×</a></div>
+  {% endif %}
 </form>
 
 <div class="card"><div class="table-responsive">
